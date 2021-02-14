@@ -1,0 +1,4 @@
+patch=1,EE,D01EE682,extended,0000FDFB
+patch=1,EE,20126f18,extended,0803FFC0
+patch=1,EE,D01EE682,extended,0000FFFd
+patch=1,EE,20126F18,extended,03e00008
