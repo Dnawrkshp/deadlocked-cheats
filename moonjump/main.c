@@ -1,8 +1,4 @@
 #include <tamtypes.h>
-#include <libdl/pad.h>
-
-char isActive = 0;
-char togglePressed = 0;
 
 int main(void)
 {

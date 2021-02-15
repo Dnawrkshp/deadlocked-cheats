@@ -1,18 +1,24 @@
 EE_OBJS_DIR = obj/
 EE_BIN_DIR = bin/
 
-EE_ELF = $(EE_BIN_DIR)moonjump.elf
-EE_BIN = $(EE_BIN_DIR)moonjump.bin
+EE_ELF = $(EE_BIN_DIR)freecam.elf
+EE_BIN = $(EE_BIN_DIR)freecam.bin
 EE_OBJS = main.o
 EE_LIBS = -ldl
-ADDRESS = 000FFF00
+ADDRESS = 000FE000
 
 EE_OBJS := $(EE_OBJS:%=$(EE_OBJS_DIR)%)
 EE_INCS := -I../../include -I$(PS2SDK)/ports/include
 EE_LDFLAGS = -fno-builtin -nostdlib -nostartfiles -L. -L../../lib -L$(PS2SDK)/ports/lib
-EE_CFLAGS := -D_PROGRAM_ENTRY=0x$(ADDRESS) -DDEBUG
+EE_CFLAGS := -D_PROGRAM_ENTRY=0x$(ADDRESS)
+
+ifeq ($(filter debug,$(MAKECMDGOALS)),debug)
+    EE_CFLAGS := $(EE_CFLAGS) -DDEBUG
+endif
 
 all: linker $(EE_OBJS_DIR) $(EE_BIN_DIR) $(EE_BIN) code
+	
+debug: all
 
 $(EE_OBJS_DIR):
 	mkdir -p $(EE_OBJS_DIR)
@@ -30,9 +36,9 @@ linker:
 	$(EE_CC) -E -x c $(EE_CFLAGS) ../linkfile.template | grep -v '^#' > linkfile
 
 code:
-	bin2code $(EE_BIN) $(ADDRESS) $(EE_BIN).raw raw
+	bin2code $(EE_BIN) $(ADDRESS) $(EE_BIN).raw raw-writeonce
+	bin2code $(EE_BIN) $(ADDRESS) $(EE_BIN).pnach pnach-writeonce
 	cat template/footer.raw >> $(EE_BIN).raw
-	bin2code $(EE_BIN) $(ADDRESS) $(EE_BIN).pnach pnach
 	cat template/footer.pnach >> $(EE_BIN).pnach
 
 clean:

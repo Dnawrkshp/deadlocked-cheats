@@ -17,7 +17,7 @@ git clone https://github.com/Dnawrkshp/deadlocked-cheats.git
 cd deadlocked-cheats
 ```
 
-4. Then you can build using:
+4. Then you can build and cheats by entering their directory using:
 
 ```sh
 make
@@ -37,8 +37,8 @@ cd deadlocked-cheats
 3. Grab the ps2dev image with bin2code and launch an instance with the current directory mounted:
 
 ```sh
-docker pull dnawrkshp/ps2dev-bin2code
-docker run -it --rm -v "$PWD\:/src" dnawrkshp/ps2dev-bin2code
+docker pull ps2dev/ps2dev
+docker run -it --rm -v "$PWD\:/src" ps2dev/ps2dev
 cd src
 apk add bash && ./docker-init.sh
 ```
