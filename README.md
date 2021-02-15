@@ -34,7 +34,7 @@ git clone https://github.com/Dnawrkshp/deadlocked-cheats.git
 cd deadlocked-cheats
 ```
 
-3. Grab the ps2dev image with bin2code and launch an instance with the current directory mounted:
+3. Grab the ps2dev image and launch an instance with the current directory mounted:
 
 ```sh
 docker pull ps2dev/ps2dev
