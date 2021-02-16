@@ -40,7 +40,7 @@ cd deadlocked-cheats
 docker pull ps2dev/ps2dev
 docker run -it --rm -v "$PWD\:/src" ps2dev/ps2dev
 cd src
-apk add bash && ./docker-init.sh
+./docker-init.sh
 ```
 
 4. Build with:
