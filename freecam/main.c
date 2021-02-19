@@ -12,13 +12,13 @@ float MOVE_SPEED = 0.5;
 //const float DELTA_TIME = 1.0 / 60.0;
 
 int Active = 0;
+int ToggleScoreboard = 0;
 VECTOR CameraPosition;
 VECTOR PlayerPosition;
 
 void MovementInputs(Player * player, PadButtonStatus * pad)
 {
 	VECTOR v;
-
 
 	// get rotation from yaw and pitch
 	float ySin = sinf(player->CameraYaw.Value);
@@ -110,6 +110,9 @@ void activate(Player * player, PlayerHUDFlags * hud)
 	// Let Camera go past the death barrier
 	*(u32*)0x005F40DC = 0x10000006;
 
+	// Set Respawn Timer to Zero, then negative so player can't respawn
+	player->RespawnTimer = -1;
+
 	// deactivate hud
 	hud->Healthbar = 0;
 	hud->Minimap = 0;
@@ -121,13 +124,19 @@ void activate(Player * player, PlayerHUDFlags * hud)
 void deactivate(Player * player, PlayerHUDFlags * hud)
 {
 	// Reset Player Position
-	vector_copy(player->PlayerPosition, PlayerPosition);
+	float * PlayerCoordinates = (float*) player->UNK24;
+	PlayerCoordinates[0] = PlayerPosition[0];
+	PlayerCoordinates[1] = PlayerPosition[1];
+	PlayerCoordinates[2] = PlayerPosition[2];
 
 	// Set Camera Distance to Default
     player->CameraDistance = -6;
 
 	// Don't let Camera go past death barrier
 	*(u32*)0x005F40DC = 0x10400006;
+
+	// Reset Respawn timer
+	player->RespawnTimer = 0;
 
 	// reactivate hud
 	hud->Healthbar = 1;
@@ -143,8 +152,15 @@ int main(void)
 	if (!gameIsIn())
 		return -1;
 
+	// Following commented because it doesn't work correctly.  might fix in future.
+	// Grab pointer at 0x001eeb70, then subtract offset to match original value of 0x00347aa0
+	// Doing so makes this work in Campagn and Local/Online Play.
+	// void * PlayerPointer = (void*)(*(u32*)0x001eeb70);
+	// Player * player = (Player*)((u32)PlayerPointer - 0x2FEC);
+	// DPRINTF("player pointer: %p\n", player);
+
 	// get local player
-	Player * player = (Player*)0x00347AA0;
+	Player * player = (Player*)0x00347aa0;
 	PadButtonStatus * pad = playerGetPad(player);
 	PlayerHUDFlags * hud = hudGetPlayerFlags(0);
 	
@@ -169,39 +185,31 @@ int main(void)
 	// If start isn't open, let inputs go through.
 	if ((*(u32*)0x00347E58) == 0)
 	{
+		// Select: Toggle Score
+		if((pad->btns & PAD_SELECT) == 0 && ToggleScoreboard == 0)
+		{
+			ToggleScoreboard = 1;
+			hud->NormalScoreboard = !hud->NormalScoreboard;
+		}
+		else if (!(pad->btns & PAD_SELECT) == 0)
+		{
+			ToggleScoreboard = 0;
+		}
 		// Handle All Movement Inputs
 		MovementInputs(player, pad);
-		// if (((pad->btns & PAD_SELECT) == 0 & hud->NormalScoreboard) == 0)
-		// {
-		// 	hud->NormalScoreboard = 1;
-		// }
-		// else if (((pad->btns & PAD_SELECT) == 0) & hud->NormalScoreboard == 1)
-		// {
-		// 	hud->NormalScoreboard = 0;
-		// }
 	}
 
 	// Apply Camera Position
 	vector_copy(player->CameraPos, CameraPosition);
 
-	// Set Player Position X to Zero and keep everything else the same.
-	VECTOR p;
-	p[0] = 0;
-	p[1] = PlayerPosition[1];
-	p[2] = PlayerPosition[2];
-	p[2] = PlayerPosition[3];
-	vector_copy(player->PlayerPosition, p);
-
-	// I used these addresses in my Free Cam assembly code.
-	// *(u32*)0x0034a9a4 = 0;
-	// *(u32*)0x0034a9a8 = PlayerPosition[1];
-	// *(u32*)0x0034a9ac = PlayerPosition[2];
+	// Set Player X Coordiante to Zero
+	float * PlayerCoordinates = (float*) player->UNK24;
+	PlayerCoordinates[0] = 0;
+	PlayerCoordinates[1] = PlayerPosition[1];
+	PlayerCoordinates[2] = PlayerPosition[2];
 
 	// Force Hold Wrench
 	player->ChangeWeaponHeldId = 1;
-
-    // Fix void fall spectate bug
-    //player->CameraType2 = 2;
 
 	// Fix Void fall bug.  This only needs to load if fallen in the void.
 	if ((*(u8*)0x0034A078) == 0x76)
