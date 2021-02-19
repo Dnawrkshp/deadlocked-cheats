@@ -19,6 +19,7 @@ void MovementInputs(Player * player, PadButtonStatus * pad)
 {
 	VECTOR v;
 
+
 	// get rotation from yaw and pitch
 	float ySin = sinf(player->CameraYaw.Value);
 	float yCos = cosf(player->CameraYaw.Value);
@@ -47,6 +48,8 @@ void MovementInputs(Player * player, PadButtonStatus * pad)
 	{
 		float vSpeed = -((float)(pad->ljoy_v - 0x7F) / 128.0) * MOVE_SPEED;
 		float hSpeed = ((float)(pad->ljoy_h - 0x7F) / 128.0) * MOVE_SPEED;
+		//float vSpeed = -((float)(pad->ljoy_v - 0x7F) / 128.0) * MOVE_SPEED * DELTA_TIME;
+		//float hSpeed = ((float)(pad->ljoy_h - 0x7F) / 128.0) * MOVE_SPEED * DELTA_TIME;
 
 		// generate vertical and horizontal vectors
 		v[0] = (yCos * vSpeed) + (ySin * hSpeed);
