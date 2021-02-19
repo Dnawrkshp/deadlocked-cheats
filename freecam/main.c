@@ -7,60 +7,131 @@
 #include <libdl/math3d.h>
 #include <libdl/hud.h>
 
-const float MOVE_SPEED = 15.0;
-const float DELTA_TIME = 1.0 / 60.0;
+float MOVE_SPEED = 0.5;
+//const float MOVE_SPEED = 15.0;
+//const float DELTA_TIME = 1.0 / 60.0;
 
 int Active = 0;
 VECTOR CameraPosition;
+VECTOR PlayerPosition;
 
-void move(Player * player, PadButtonStatus * pad)
+void MovementInputs(Player * player, PadButtonStatus * pad)
 {
 	VECTOR v;
-	float vSpeed = -((float)(pad->ljoy_v - 0x7F) / 128.0) * MOVE_SPEED * DELTA_TIME;
-	float hSpeed = ((float)(pad->ljoy_h - 0x7F) / 128.0) * MOVE_SPEED * DELTA_TIME;
 
 	// get rotation from yaw and pitch
 	float ySin = sinf(player->CameraYaw.Value);
 	float yCos = cosf(player->CameraYaw.Value);
 	float pSin = sinf(player->CameraPitch.Value);
+	float pCos = cosf(player->CameraPitch.Value);
 
-	// generate vertical and horizontal vectors
-	v[0] = (yCos * vSpeed) + (ySin * hSpeed);
-	v[1] = (ySin * vSpeed) + (-yCos * hSpeed);
-	v[2] = (pSin * -vSpeed);
-	v[3] = 0;
+	// Handle Speed
+	// L1: Fast Speed
+	if ((pad->btns & PAD_L1) == 0)
+	{
+		MOVE_SPEED = 2.0;
+	}
+	// R1: Slow Speed
+	else if ((pad->btns & PAD_R1) == 0)
+	{
+		MOVE_SPEED = 0.12;
+	}
+	// Default Speed
+	else
+	{
+		MOVE_SPEED = 0.5;
+	}
 
-	// add
+	// Left Analog
+	if (pad->ljoy_v != 0x7F || pad->ljoy_h != 0x7F)
+	{
+		float vSpeed = -((float)(pad->ljoy_v - 0x7F) / 128.0) * MOVE_SPEED;
+		float hSpeed = ((float)(pad->ljoy_h - 0x7F) / 128.0) * MOVE_SPEED;
+
+		// generate vertical and horizontal vectors
+		v[0] = (yCos * vSpeed) + (ySin * hSpeed);
+		v[1] = (ySin * vSpeed) + (-yCos * hSpeed);
+		v[2] = (pSin * -vSpeed);
+		v[3] = 0;
+	}
+	// D-Pad Up: Forward
+	if ((pad->btns & PAD_UP) == 0)
+	{
+		v[0] = (yCos * MOVE_SPEED);
+		v[1] = (ySin * MOVE_SPEED);
+	}
+	// D-Pad Down: Backward
+	if ((pad->btns & PAD_DOWN) == 0)
+	{
+		v[0] = (-yCos * MOVE_SPEED);
+		v[1] = (-ySin * MOVE_SPEED);
+	}
+	// D-Pad Left: Strafe Left
+	if ((pad->btns & PAD_LEFT) == 0)
+	{
+		v[0] = (-ySin * MOVE_SPEED);
+		v[1] = (yCos * MOVE_SPEED);
+	}
+	// D-Pad Right: Strafe Right
+	if ((pad->btns & PAD_RIGHT) == 0)
+	{
+		v[0] = (ySin * MOVE_SPEED);
+		v[1] = (-yCos * MOVE_SPEED);
+	}
+	// L2 = Move Down
+	if ((pad->btns & PAD_L2) == 0 && (pad->btns & PAD_R2) != 0)
+	{
+		v[2] = (pCos * -MOVE_SPEED);
+	}
+	// R2 = Move Up
+	if ((pad->btns & PAD_R2) == 0 && (pad->btns & PAD_L2) != 0)
+	{
+		v[2] = (pCos * MOVE_SPEED);
+	}
+
+	// Add Vector to Camera Position
 	vector_add(CameraPosition, CameraPosition, v);
 }
 
-void activate(Player * player)
+void activate(Player * player, PlayerHUDFlags * hud)
 {
 	// Update stored camera position
 	vector_copy(CameraPosition, player->CameraPos);
 
-	// set distance to 0
-    //player->CameraDistance = 0;
+	// Copy Current Player Position and store it.
+	vector_copy(PlayerPosition, player->PlayerPosition);
+
+	// Set Camera Distance to Zero
+    player->CameraDistance = 0;
+
+	// Let Camera go past the death barrier
+	*(u32*)0x005F40DC = 0x10000006;
 
 	// deactivate hud
-	PlayerHUDFlags * hud = hudGetPlayerFlags(0);
 	hud->Healthbar = 0;
 	hud->Minimap = 0;
 	hud->Weapons = 0;
 	hud->Popup = 0;
+	hud->NormalScoreboard = 0;
 }
 
-void deactivate(Player * player)
+void deactivate(Player * player, PlayerHUDFlags * hud)
 {
-	// set distance to default
-    //player->CameraDistance = 6;
+	// Reset Player Position
+	vector_copy(player->PlayerPosition, PlayerPosition);
+
+	// Set Camera Distance to Default
+    player->CameraDistance = -6;
+
+	// Don't let Camera go past death barrier
+	*(u32*)0x005F40DC = 0x10400006;
 
 	// reactivate hud
-	PlayerHUDFlags * hud = hudGetPlayerFlags(0);
 	hud->Healthbar = 1;
 	hud->Minimap = 1;
 	hud->Weapons = 1;
 	hud->Popup = 1;
+	hud->NormalScoreboard = 1;
 }
 
 int main(void)
@@ -72,37 +143,66 @@ int main(void)
 	// get local player
 	Player * player = (Player*)0x00347AA0;
 	PadButtonStatus * pad = playerGetPad(player);
+	PlayerHUDFlags * hud = hudGetPlayerFlags(0);
 	
 	// handle activate deactivate
-	if (!Active && (pad->btns & (PAD_L3 | PAD_R3)) == 0)
+	// Don't activate if player is in Vehicle
+	// Activate with L1 + R1 + L3
+	if (!Active && !player->Vehicle && (pad->btns & (PAD_L1 | PAD_R1 | PAD_L3)) == 0)
 	{
 		Active = 1;
-		activate(player);
+		activate(player, hud);
 	}
-	else if (Active && (pad->btns & PAD_DOWN) == 0)
+	// Deactivate with L1 + R1 + R3
+	else if (Active && (pad->btns & (PAD_L1 | PAD_R1 | PAD_R3)) == 0)
 	{
 		Active = 0;
-		deactivate(player);
+		deactivate(player, hud);
 	}
 	
 	if (!Active)
 		return 0;
 
-	// handle left joystick
-	if (pad->ljoy_v != 0x7F || pad->ljoy_h != 0x7F)
-		move(player, pad);
+	// If start isn't open, let inputs go through.
+	if ((*(u32*)0x00347E58) == 0)
+	{
+		// Handle All Movement Inputs
+		MovementInputs(player, pad);
+		// if (((pad->btns & PAD_SELECT) == 0 & hud->NormalScoreboard) == 0)
+		// {
+		// 	hud->NormalScoreboard = 1;
+		// }
+		// else if (((pad->btns & PAD_SELECT) == 0) & hud->NormalScoreboard == 1)
+		// {
+		// 	hud->NormalScoreboard = 0;
+		// }
+	}
 
-	// apply camera position
+	// Apply Camera Position
 	vector_copy(player->CameraPos, CameraPosition);
 
-	// hide player
-	*(u32*)(player->UNK4 + 0x18) = 0x00800200;
+	// Set Player Position X to Zero and keep everything else the same.
+	VECTOR p;
+	p[0] = 0;
+	p[1] = PlayerPosition[1];
+	p[2] = PlayerPosition[2];
+	p[2] = PlayerPosition[3];
+	vector_copy(player->PlayerPosition, p);
 
-	// enable airwalk
-	player->Airwalk = 1;
+	// I used these addresses in my Free Cam assembly code.
+	// *(u32*)0x0034a9a4 = 0;
+	// *(u32*)0x0034a9a8 = PlayerPosition[1];
+	// *(u32*)0x0034a9ac = PlayerPosition[2];
+
+	// Force Hold Wrench
+	player->ChangeWeaponHeldId = 1;
 
     // Fix void fall spectate bug
-    player->CameraType2 = 2;
+    //player->CameraType2 = 2;
+
+	// Fix Void fall bug.  This only needs to load if fallen in the void.
+	if ((*(u8*)0x0034A078) == 0x76)
+		player->UNK19[4] = 0;
 
 	// fix death camera lock
     player->CameraPitchMin = 1.48353;
