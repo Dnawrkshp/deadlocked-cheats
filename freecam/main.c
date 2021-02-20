@@ -202,11 +202,14 @@ int main(void)
 	// Apply Camera Position
 	vector_copy(player->CameraPos, CameraPosition);
 
-	// Set Player X Coordiante to Zero
-	float * PlayerCoordinates = (float*) player->UNK24;
-	PlayerCoordinates[0] = 0;
-	PlayerCoordinates[1] = PlayerPosition[1];
-	PlayerCoordinates[2] = PlayerPosition[2];
+	// If player isn't dead, move player to X: Zero
+	if((player->PlayerState) != 0x99)
+	{
+		float * PlayerCoordinates = (float*) player->UNK24;
+		PlayerCoordinates[0] = 0;
+		PlayerCoordinates[1] = PlayerPosition[1];
+		PlayerCoordinates[2] = PlayerPosition[2];
+	}
 
 	// Force Hold Wrench
 	player->ChangeWeaponHeldId = 1;
@@ -216,8 +219,8 @@ int main(void)
 		player->UNK19[4] = 0;
 
 	// fix death camera lock
-    player->CameraPitchMin = 1.48353;
-    player->CameraPitchMax = -1.22173;
+	player->CameraPitchMin = 1.48353;
+	player->CameraPitchMax = -1.22173;
 
 	return 1;
 }
