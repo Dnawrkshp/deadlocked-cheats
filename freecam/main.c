@@ -15,6 +15,9 @@ int Active = 0;
 int ToggleScoreboard = 0;
 VECTOR CameraPosition;
 VECTOR PlayerPosition;
+VECTOR targetPos;
+VECTOR cameraPos;
+VECTOR delta;
 
 void MovementInputs(Player * player, PadButtonStatus * pad)
 {
@@ -91,7 +94,6 @@ void MovementInputs(Player * player, PadButtonStatus * pad)
 	{
 		v[2] = (pCos * MOVE_SPEED);
 	}
-
 	// Add Vector to Camera Position
 	vector_add(CameraPosition, CameraPosition, v);
 }
@@ -105,7 +107,7 @@ void activate(Player * player, PlayerHUDFlags * hud)
 	vector_copy(PlayerPosition, player->PlayerPosition);
 
 	// Set Camera Distance to Zero
-    player->CameraDistance = 0;
+	player->CameraDistance = 0;
 
 	// Let Camera go past the death barrier
 	*(u32*)0x005F40DC = 0x10000006;
@@ -130,7 +132,7 @@ void deactivate(Player * player, PlayerHUDFlags * hud)
 	PlayerCoordinates[2] = PlayerPosition[2];
 
 	// Set Camera Distance to Default
-    player->CameraDistance = -6;
+	player->CameraDistance = -6;
 
 	// Don't let Camera go past death barrier
 	*(u32*)0x005F40DC = 0x10400006;
@@ -195,10 +197,28 @@ int main(void)
 		{
 			ToggleScoreboard = 0;
 		}
+
+		// R3: Select target for lock rotation
+		if ((pad->btns & PAD_R3) == 0)
+		{
+			vector_copy(targetPos, CameraPosition);
+		}
+		// Hold Circle: lock camera
+		if ((pad->btns & PAD_CIRCLE) == 0)
+		{
+			vector_copy(cameraPos, CameraPosition);
+			vector_subtract(delta, targetPos, cameraPos);
+			vector_normalize(delta, delta);
+			float pitch = asinf(-delta[2]);
+			float yaw = atan2f(delta[1], delta[0]);
+
+			player->CameraPitch.Value = pitch;
+			player->CameraYaw.Value = yaw;
+		}
+
 		// Handle All Movement Inputs
 		MovementInputs(player, pad);
 	}
-
 	// Apply Camera Position
 	vector_copy(player->CameraPos, CameraPosition);
 
@@ -215,6 +235,7 @@ int main(void)
 	player->ChangeWeaponHeldId = 1;
 
 	// Fix Void fall bug.  This only needs to load if fallen in the void.
+	// Running any other time will cause the player to keep getting deaths if not in void.
 	if ((*(u8*)0x0034A078) == 0x76)
 		player->UNK19[4] = 0;
 

@@ -1,4 +1,6 @@
 # Free Cam
+This version of Free Cam will only work in Local Play and Online play.
+The features are meant to help create a cinematic experience.
 
 Controls:
  - Turn On: L1 + R1 + L3
@@ -9,4 +11,6 @@ Controls:
  - Move Up: R2
  - x4.0 Speed: L1
  - x0.5 Speed: R1
+ - Select Center Point for Camera Lock: R3
+ - Lock Camera to Center Point: Hold Circle
  - Toggle Score HUD: Select
