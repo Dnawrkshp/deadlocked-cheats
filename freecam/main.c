@@ -47,12 +47,17 @@ void MovementInputs(Player * player, PadButtonStatus * pad)
 	}
 
 	// Left Analog
-	if (pad->ljoy_v != 0x7F || pad->ljoy_h != 0x7F)
+	// Swapped library pad->ljoy with another line.
+	// It adds more error for drifting analog sticks.
+	float LeftAnalogH = (*(float*)0x001ee708);
+	float LeftAnalogV = (*(float*)0x001ee70c);
+	//if (pad->ljoy_v != 0x7F || pad->ljoy_h != 0x7F)
+	if((LeftAnalogV || LeftAnalogH) != 0)
 	{
-		float vSpeed = -((float)(pad->ljoy_v - 0x7F) / 128.0) * MOVE_SPEED;
-		float hSpeed = ((float)(pad->ljoy_h - 0x7F) / 128.0) * MOVE_SPEED;
-		//float vSpeed = -((float)(pad->ljoy_v - 0x7F) / 128.0) * MOVE_SPEED * DELTA_TIME;
-		//float hSpeed = ((float)(pad->ljoy_h - 0x7F) / 128.0) * MOVE_SPEED * DELTA_TIME;
+		float hSpeed = LeftAnalogH * MOVE_SPEED;
+		float vSpeed = -LeftAnalogV * MOVE_SPEED;
+		//float vSpeed = -((float)(pad->ljoy_v - 0x7F) / 128.0) * MOVE_SPEED;
+		//float hSpeed = ((float)(pad->ljoy_h - 0x7F) / 128.0) * MOVE_SPEED;
 
 		// generate vertical and horizontal vectors
 		v[0] = (yCos * vSpeed) + (ySin * hSpeed);
@@ -106,9 +111,6 @@ void activate(Player * player, PlayerHUDFlags * hud)
 	// Copy Current Player Position and store it.
 	vector_copy(PlayerPosition, player->PlayerPosition);
 
-	// Set Camera Distance to Zero
-	player->CameraDistance = 0;
-
 	// Let Camera go past the death barrier
 	*(u32*)0x005F40DC = 0x10000006;
 
@@ -152,7 +154,10 @@ int main(void)
 {
 	// ensure we're in game
 	if (!gameIsIn())
+	{
+		Active = 0;
 		return -1;
+	}
 
 	// Following commented because it doesn't work correctly.  might fix in future.
 	// Grab pointer at 0x001eeb70, then subtract offset to match original value of 0x00347aa0
@@ -238,6 +243,9 @@ int main(void)
 	// Running any other time will cause the player to keep getting deaths if not in void.
 	if ((*(u8*)0x0034A078) == 0x76)
 		player->UNK19[4] = 0;
+
+	// Constanty Set Camera Distance to Zero
+	player->CameraDistance = 0;
 
 	// fix death camera lock
 	player->CameraPitchMin = 1.48353;
