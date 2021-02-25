@@ -7,17 +7,13 @@
 #include <libdl/math3d.h>
 #include <libdl/hud.h>
 
-float MOVE_SPEED = 0.5;
-//const float MOVE_SPEED = 15.0;
-//const float DELTA_TIME = 1.0 / 60.0;
-
 int Active = 0;
 int ToggleScoreboard = 0;
-VECTOR CameraPosition;
-VECTOR PlayerPosition;
-VECTOR targetPos;
-VECTOR cameraPos;
-VECTOR delta;
+VECTOR 	CameraPosition,
+		PlayerPosition,
+		targetPos,
+		cameraPos,
+		delta;
 
 void MovementInputs(Player * player, PadButtonStatus * pad)
 {
@@ -30,20 +26,17 @@ void MovementInputs(Player * player, PadButtonStatus * pad)
 	float pCos = cosf(player->CameraPitch.Value);
 
 	// Handle Speed
+	// Default Speed
+	float MOVE_SPEED = 0.5;
 	// L1: Fast Speed
-	if ((pad->btns & PAD_L1) == 0)
+	if ((pad->btns & PAD_L1) == 0 && (pad->btns & PAD_R1) != 0)
 	{
 		MOVE_SPEED = 2.0;
 	}
 	// R1: Slow Speed
-	else if ((pad->btns & PAD_R1) == 0)
+	if ((pad->btns & PAD_R1) == 0 && (pad->btns & PAD_L1) != 0)
 	{
 		MOVE_SPEED = 0.12;
-	}
-	// Default Speed
-	else
-	{
-		MOVE_SPEED = 0.5;
 	}
 
 	// Left Analog
@@ -99,6 +92,24 @@ void MovementInputs(Player * player, PadButtonStatus * pad)
 	{
 		v[2] = (pCos * MOVE_SPEED);
 	}
+	// R3: Select target for lock rotation
+	if ((pad->btns & PAD_R3) == 0)
+	{
+		vector_copy(targetPos, CameraPosition);
+	}
+	// Hold Circle: lock camera
+	if ((pad->btns & PAD_CIRCLE) == 0)
+	{
+		vector_copy(cameraPos, CameraPosition);
+		vector_subtract(delta, targetPos, cameraPos);
+		vector_normalize(delta, delta);
+		float pitch = asinf(-delta[2]);
+		float yaw = atan2f(delta[1], delta[0]);
+
+		player->CameraPitch.Value = pitch;
+		player->CameraYaw.Value = yaw;
+	}
+
 	// Add Vector to Camera Position
 	vector_add(CameraPosition, CameraPosition, v);
 }
@@ -201,24 +212,6 @@ int main(void)
 		else if (!(pad->btns & PAD_SELECT) == 0)
 		{
 			ToggleScoreboard = 0;
-		}
-
-		// R3: Select target for lock rotation
-		if ((pad->btns & PAD_R3) == 0)
-		{
-			vector_copy(targetPos, CameraPosition);
-		}
-		// Hold Circle: lock camera
-		if ((pad->btns & PAD_CIRCLE) == 0)
-		{
-			vector_copy(cameraPos, CameraPosition);
-			vector_subtract(delta, targetPos, cameraPos);
-			vector_normalize(delta, delta);
-			float pitch = asinf(-delta[2]);
-			float yaw = atan2f(delta[1], delta[0]);
-
-			player->CameraPitch.Value = pitch;
-			player->CameraYaw.Value = yaw;
 		}
 
 		// Handle All Movement Inputs
