@@ -2,9 +2,6 @@
 This version of Free Cam will only work in Campaign
 The features are meant to help create a cinematic experience.
 
-Features:
- - Hides HUD when activated.  Shows it when turned off.
-
 Controls:
  - Turn On: L1 + R1 + L3
  - Turn Off: L1 + R1 + R3

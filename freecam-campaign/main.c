@@ -1,3 +1,7 @@
+/*
+ Free Cam Code Created by Troy "Agent Moose" Pruitt
+*/
+
 #include <tamtypes.h>
 #include <libdl/stdio.h>
 #include <libdl/game.h>
@@ -15,7 +19,6 @@ VECTOR 	CameraPosition,
 		targetPos,
 		cameraPos,
 		delta;
-
 
 void MovementInputs(Player * player, PadButtonStatus * pad)
 {
@@ -99,7 +102,8 @@ void activate(Player * player, void * PlayerPointer)
 	vector_copy(PlayerPosition, player->PlayerPosition);
 
 	// Let Camera go past the death barrier
-	//*(u32*)0x005F40DC = 0x10000006;
+	void * CameraDeath = (*(u32*)((u32)player + 0x1a54) - 0x3b0c);
+	*(u32*)CameraDeath = 0x10000006;
 
 	// Store Original HUD
 	HUD = *(u16*)(PlayerPointer - 0x3d1e8);
@@ -125,7 +129,8 @@ void deactivate(Player * player, void * PlayerPointer)
 	player->CameraDistance = -6;
 
 	// Don't let Camera go past death barrier
-	//*(u32*)0x005F40DC = 0x10400006;
+	void * CameraDeath = (*(u32*)((u32)player + 0x1a54) - 0x3b0c);
+	*(u32*)CameraDeath = 0x10400006;
 
 	// Show HUD
 	*(u16*)(PlayerPointer - 0x3d1e8) = HUD;
@@ -139,15 +144,17 @@ void deactivate(Player * player, void * PlayerPointer)
 
 int main(void)
 {
-	//void * PlayerPointer = (void*)(*(u32*)0x001eeb70);
-	void * PlayerPointer = *(u32*)0x001eeb70;
-	Player * player = (Player*)((u32)PlayerPointer - 0x2FEC);
-	PadButtonStatus * pad = playerGetPad(player);
+	// Get pointer for Player Struct
+	void * PlayerPointer = (void*)(*(u32*)0x001eeb70);
+	//void * PlayerPointer = *(u32*)0x001eeb70;
 	if (PlayerPointer == 0 || (u32)PlayerPointer == 0x0034aa8c)
 	{
 		Active = 0;
 		return -1;
 	}
+	// Subtract offset to get to begining of player struct so we can use libdl's offsets.
+	Player * player = (Player*)((u32)PlayerPointer - 0x2FEC);
+	PadButtonStatus * pad = playerGetPad(player);
 
 	// handle activate deactivate
 	// Don't activate if player is in Vehicle
