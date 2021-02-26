@@ -2,11 +2,13 @@
 This version of Free Cam will only work in Campaign
 The features are meant to help create a cinematic experience.
 
-This is still very much in the works and doesn't have all the features of the Local/Online Play Free Cam.
+Features:
+ - Hides HUD when activated.  Shows it when turned off.
 
 Controls:
  - Turn On: L1 + R1 + L3
  - Turn Off: L1 + R1 + R3
+ - Move: L3/D-Pad
  - Look Around: R3
  - Move Down: L2
  - Move Up: R2
@@ -14,7 +16,4 @@ Controls:
  - x0.5 Speed: R1
  - Select Center Point for Camera Lock: R3
  - Lock Camera to Center Point: Hold Circle
-
- To Do:
-  - Move with D-Pad
-  - Hide HUD
+ - Triangle: Set Player to current Camera Position and turn off code.

@@ -9,11 +9,13 @@
 
 int Active = 0;
 int ToggleScoreboard = 0;
+int HUD = 0;
 VECTOR 	CameraPosition,
 		PlayerPosition,
 		targetPos,
 		cameraPos,
 		delta;
+
 
 void MovementInputs(Player * player, PadButtonStatus * pad)
 {
@@ -45,54 +47,30 @@ void MovementInputs(Player * player, PadButtonStatus * pad)
 	float LeftAnalogH = (*(float*)0x001ee708);
 	float LeftAnalogV = (*(float*)0x001ee70c);
 	// if (pad->ljoy_v != 0x7F || pad->ljoy_h != 0x7F)
-	if ((LeftAnalogV || LeftAnalogH) != 0 || ((pad->btns & PAD_L2) == 0 || (pad->btns & PAD_R2) == 0))
+	if ((LeftAnalogV || LeftAnalogH) != 0 || (pad->btns != 0xFFFF))
 	{
 		float hSpeed = LeftAnalogH * MOVE_SPEED;
 		float vSpeed = -LeftAnalogV * MOVE_SPEED;
 		// float vSpeed = -((float)(pad->ljoy_v - 0x7F) / 128.0) * MOVE_SPEED;
 		// float hSpeed = ((float)(pad->ljoy_h - 0x7F) / 128.0) * MOVE_SPEED;
 
-		// generate vertical and horizontal vectors
-		v[0] = (yCos * vSpeed) + (ySin * hSpeed);
-		v[1] = (ySin * vSpeed) + (-yCos * hSpeed);
-		v[2] = ((pad->btns & PAD_L2) == 0 && (pad->btns & PAD_R2) != 0) ? (pCos * -MOVE_SPEED) : ((pad->btns & PAD_R2) == 0 && (pad->btns & PAD_L2) != 0) ? (pCos * MOVE_SPEED) : (pSin * -vSpeed);
+		// Using ternary statements fixes a bug with movement in campaign.
+		v[0] = ((pad->btns & PAD_UP) == 0) ? (yCos * MOVE_SPEED)
+			: ((pad->btns & PAD_DOWN) == 0) ? (-yCos * MOVE_SPEED)
+			: ((pad->btns & PAD_LEFT) == 0) ? (-ySin * MOVE_SPEED)
+			: ((pad->btns & PAD_RIGHT) == 0) ? (ySin * MOVE_SPEED)
+			: (yCos * vSpeed) + (ySin * hSpeed);
+		v[1] = ((pad->btns & PAD_UP) == 0) ? (ySin * MOVE_SPEED)
+			: ((pad->btns & PAD_DOWN) == 0) ? (-ySin * MOVE_SPEED)
+			: ((pad->btns & PAD_LEFT) == 0) ? (yCos * MOVE_SPEED)
+			: ((pad->btns & PAD_RIGHT) == 0) ? (-yCos * MOVE_SPEED)
+			: (ySin * vSpeed) + (-yCos * hSpeed);
+		v[2] = ((pad->btns & PAD_L2) == 0 && (pad->btns & PAD_R2) != 0) ? (pCos * -MOVE_SPEED)
+			: ((pad->btns & PAD_R2) == 0 && (pad->btns & PAD_L2) != 0) ? (pCos * MOVE_SPEED)
+			: (pSin * -vSpeed);
 		v[3] = 0;
 		vector_add(CameraPosition, CameraPosition, v);
 	}
-	// D-Pad Up: Forward
-	// if ((pad->btns & PAD_UP) == 0)
-	// {
-	// 	v[0] = (yCos * MOVE_SPEED);
-	// 	v[1] = (ySin * MOVE_SPEED);
-	// }
-	// // D-Pad Down: Backward
-	// if ((pad->btns & PAD_DOWN) == 0)
-	// {
-	// 	v[0] = (-yCos * MOVE_SPEED);
-	// 	v[1] = (-ySin * MOVE_SPEED);
-	// }
-	// // D-Pad Left: Strafe Left
-	// if ((pad->btns & PAD_LEFT) == 0)
-	// {
-	// 	v[0] = (-ySin * MOVE_SPEED);
-	// 	v[1] = (yCos * MOVE_SPEED);
-	// }
-	// // D-Pad Right: Strafe Right
-	// if ((pad->btns & PAD_RIGHT) == 0)
-	// {
-	// 	v[0] = (ySin * MOVE_SPEED);
-	// 	v[1] = (-yCos * MOVE_SPEED);
-	// }
-	// // L2 = Move Down
-	// if ((pad->btns & PAD_L2) == 0 && (pad->btns & PAD_R2) != 0)
-	// {
-	// 	v[2] = (pCos * -MOVE_SPEED);
-	// }
-	// // R2 = Move Up
-	// if ((pad->btns & PAD_R2) == 0 && (pad->btns & PAD_L2) != 0)
-	// {
-	// 	v[2] = (pCos * MOVE_SPEED);
-	// }
 	// R3: Select target for lock rotation
 	if ((pad->btns & PAD_R3) == 0)
 	{
@@ -110,15 +88,9 @@ void MovementInputs(Player * player, PadButtonStatus * pad)
 		player->CameraPitch.Value = pitch;
 		player->CameraYaw.Value = yaw;
 	}
-
-	// Add Vector to Camera Position
-	// if(pad->ljoy_v != 0x7F || pad->ljoy_h != 0x7F || pad->btns != 0xFFFF)
-	// {
-	// 	vector_add(CameraPosition, CameraPosition, v);
-	// }
 }
 
-void activate(Player * player)
+void activate(Player * player, void * PlayerPointer)
 {
 	// Update stored camera position
 	vector_copy(CameraPosition, player->CameraPos);
@@ -129,6 +101,10 @@ void activate(Player * player)
 	// Let Camera go past the death barrier
 	//*(u32*)0x005F40DC = 0x10000006;
 
+	// Store Original HUD
+	HUD = *(u16*)(PlayerPointer - 0x3d1e8);
+	// Hide HUD
+	*(u16*)(PlayerPointer - 0x3d1e8) = 0;
 	// deactivate hud
 	// hud->Healthbar = 0;
 	// hud->Minimap = 0;
@@ -137,7 +113,7 @@ void activate(Player * player)
 	// hud->NormalScoreboard = 0;
 }
 
-void deactivate(Player * player)
+void deactivate(Player * player, void * PlayerPointer)
 {
 	// Reset Player Position
 	float * PlayerCoordinates = (float*) player->UNK24;
@@ -151,6 +127,8 @@ void deactivate(Player * player)
 	// Don't let Camera go past death barrier
 	//*(u32*)0x005F40DC = 0x10400006;
 
+	// Show HUD
+	*(u16*)(PlayerPointer - 0x3d1e8) = HUD;
 	// reactivate hud
 	// hud->Healthbar = 1;
 	// hud->Minimap = 1;
@@ -161,21 +139,15 @@ void deactivate(Player * player)
 
 int main(void)
 {
-	// Following commented because it doesn't work correctly.  might fix in future.
-	// Grab pointer at 0x001eeb70, then subtract offset to match original value of 0x00347aa0
-	// Doing so makes this work in Campagn and Local/Online Play.
 	//void * PlayerPointer = (void*)(*(u32*)0x001eeb70);
 	void * PlayerPointer = *(u32*)0x001eeb70;
 	Player * player = (Player*)((u32)PlayerPointer - 0x2FEC);
 	PadButtonStatus * pad = playerGetPad(player);
-	// PlayerHUDFlags * hud = hudGetPlayerFlags(0);
-	if (PlayerPointer == 0)
+	if (PlayerPointer == 0 || (u32)PlayerPointer == 0x0034aa8c)
 	{
 		Active = 0;
 		return -1;
 	}
-
-	// DPRINTF("player pointer: %p\n", player);
 
 	// handle activate deactivate
 	// Don't activate if player is in Vehicle
@@ -183,13 +155,22 @@ int main(void)
 	if (!Active && !player->Vehicle && (pad->btns & (PAD_L1 | PAD_R1 | PAD_L3)) == 0)
 	{
 		Active = 1;
-		activate(player);
+		activate(player, PlayerPointer);
 	}
 	// Deactivate with L1 + R1 + R3
 	else if (Active && (pad->btns & (PAD_L1 | PAD_R1 | PAD_R3)) == 0)
 	{
 		Active = 0;
-		deactivate(player);
+		deactivate(player, PlayerPointer);
+	}
+	else if (Active && (pad->btns & PAD_TRIANGLE) == 0)
+	{
+		Active = 0;
+		// Could just do vector_copy, but this is actualy shorter assembly.
+		PlayerPosition[0] = CameraPosition[0];
+		PlayerPosition[1] = CameraPosition[1];
+		PlayerPosition[2] = CameraPosition[2];
+		deactivate(player, PlayerPointer);
 	}
 	
 	if (!Active)
