@@ -1,5 +1,6 @@
 # Free Cam - Campaign Edition
-This version of Free Cam will only work in Campaign.\n
+This version of Free Cam will only work in Campaign.
+
 The features are meant to help create a cinematic experience.
 
 Controls:
