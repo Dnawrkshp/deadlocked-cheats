@@ -9,7 +9,7 @@
 
 int Active = 0;
 int ToggleScoreboard = 0;
-VECTOR 	CameraPosition,
+VECTOR CameraPosition,
 		PlayerPosition,
 		targetPos,
 		cameraPos,
@@ -44,13 +44,10 @@ void MovementInputs(Player * player, PadButtonStatus * pad)
 	// It adds more error for drifting analog sticks.
 	float LeftAnalogH = (*(float*)0x001ee708);
 	float LeftAnalogV = (*(float*)0x001ee70c);
-	//if (pad->ljoy_v != 0x7F || pad->ljoy_h != 0x7F)
 	if((LeftAnalogV || LeftAnalogH) != 0)
 	{
 		float hSpeed = LeftAnalogH * MOVE_SPEED;
 		float vSpeed = -LeftAnalogV * MOVE_SPEED;
-		//float vSpeed = -((float)(pad->ljoy_v - 0x7F) / 128.0) * MOVE_SPEED;
-		//float hSpeed = ((float)(pad->ljoy_h - 0x7F) / 128.0) * MOVE_SPEED;
 
 		// generate vertical and horizontal vectors
 		v[0] = (yCos * vSpeed) + (ySin * hSpeed);
@@ -170,31 +167,29 @@ int main(void)
 		return -1;
 	}
 
-	// Following commented because it doesn't work correctly.  might fix in future.
-	// Grab pointer at 0x001eeb70, then subtract offset to match original value of 0x00347aa0
-	// Doing so makes this work in Campagn and Local/Online Play.
-	// void * PlayerPointer = (void*)(*(u32*)0x001eeb70);
-	// Player * player = (Player*)((u32)PlayerPointer - 0x2FEC);
-	// DPRINTF("player pointer: %p\n", player);
-
-	// get local player
+	// Get Local Player
 	Player * player = (Player*)0x00347aa0;
 	PadButtonStatus * pad = playerGetPad(player);
 	PlayerHUDFlags * hud = hudGetPlayerFlags(0);
-	
-	// handle activate deactivate
-	// Don't activate if player is in Vehicle
-	// Activate with L1 + R1 + L3
-	if (!Active && !player->Vehicle && (pad->btns & (PAD_L1 | PAD_R1 | PAD_L3)) == 0)
+
+	if (!Active)
 	{
-		Active = 1;
-		activate(player, hud);
+		// Don't activate if player is in Vehicle
+		// Activate with L1 + R1 + L3
+		if (!player->Vehicle && (pad->btns & (PAD_L1 | PAD_R1 | PAD_L3)) == 0)
+		{
+			Active = 1;
+			activate(player, hud);
+		}
 	}
-	// Deactivate with L1 + R1 + R3
-	else if (Active && (pad->btns & (PAD_L1 | PAD_R1 | PAD_R3)) == 0)
+	else if (Active)
 	{
-		Active = 0;
-		deactivate(player, hud);
+		// Deactivate with L1 + R1 + R3
+		if ((pad->btns & (PAD_L1 | PAD_R1 | PAD_R3)) == 0)
+		{
+			Active = 0;
+			deactivate(player, hud);
+		}
 	}
 	
 	if (!Active)
@@ -204,7 +199,7 @@ int main(void)
 	if ((*(u32*)0x00347E58) == 0)
 	{
 		// Select: Toggle Score
-		if((pad->btns & PAD_SELECT) == 0 && ToggleScoreboard == 0)
+		if ((pad->btns & PAD_SELECT) == 0 && ToggleScoreboard == 0)
 		{
 			ToggleScoreboard = 1;
 			hud->NormalScoreboard = !hud->NormalScoreboard;
@@ -221,7 +216,7 @@ int main(void)
 	vector_copy(player->CameraPos, CameraPosition);
 
 	// If player isn't dead, move player to X: Zero
-	if((player->PlayerState) != 0x99)
+	if ((player->PlayerState) != 0x99)
 	{
 		float * PlayerCoordinates = (float*) player->UNK24;
 		PlayerCoordinates[0] = 0;
