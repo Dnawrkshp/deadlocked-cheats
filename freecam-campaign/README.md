@@ -1,5 +1,5 @@
 # Free Cam - Campaign Edition
-This version of Free Cam will only work in Campaign
+This version of Free Cam will only work in Campaign.\n
 The features are meant to help create a cinematic experience.
 
 Controls:
@@ -13,4 +13,4 @@ Controls:
  - x0.5 Speed: R1
  - Select Center Point for Camera Lock: R3
  - Lock Camera to Center Point: Hold Circle
- - Triangle: Set Player to current Camera Position and turn off code.
+ - Set Player to current Camera Position: Triangle

@@ -13,7 +13,7 @@
 
 int Active = 0;
 int ToggleScoreboard = 0;
-int HUD = 0;
+int SavedHUD = 0;
 VECTOR 	CameraPosition,
 		PlayerPosition,
 		targetPos,
@@ -49,13 +49,10 @@ void MovementInputs(Player * player, PadButtonStatus * pad)
 	// It adds more error for drifting analog sticks.
 	float LeftAnalogH = (*(float*)0x001ee708);
 	float LeftAnalogV = (*(float*)0x001ee70c);
-	// if (pad->ljoy_v != 0x7F || pad->ljoy_h != 0x7F)
 	if ((LeftAnalogV || LeftAnalogH) != 0 || (pad->btns != 0xFFFF))
 	{
 		float hSpeed = LeftAnalogH * MOVE_SPEED;
 		float vSpeed = -LeftAnalogV * MOVE_SPEED;
-		// float vSpeed = -((float)(pad->ljoy_v - 0x7F) / 128.0) * MOVE_SPEED;
-		// float hSpeed = ((float)(pad->ljoy_h - 0x7F) / 128.0) * MOVE_SPEED;
 
 		// Using ternary statements fixes a bug with movement in campaign.
 		v[0] = ((pad->btns & PAD_UP) == 0) ? (yCos * MOVE_SPEED)
@@ -102,19 +99,22 @@ void activate(Player * player, void * PlayerPointer)
 	vector_copy(PlayerPosition, player->PlayerPosition);
 
 	// Let Camera go past the death barrier
-	void * CameraDeath = (*(u32*)((u32)player + 0x1a54) - 0x3b0c);
+	void * CameraDeath = (void*)(*(u32*)((u32)player + 0x1a54) - 0x3b0c);
 	*(u32*)CameraDeath = 0x10000006;
 
+	// Set HUD address into HUDPointer
+	void * HUDPointer = (void*)((u32)PlayerPointer - 0x3d1e8);
+
+	// Get D-Pad HUD Pointer and go to needed address
+	int DpadHUDPointer = (*(u32*)((u32)HUDPointer - 0x70) + 0x258);
+	// Disable Directional Pad HUD
+	*(u32*)DpadHUDPointer = 0;
+
 	// Store Original HUD
-	HUD = *(u16*)(PlayerPointer - 0x3d1e8);
+	SavedHUD = *(u16*)HUDPointer;
+
 	// Hide HUD
-	*(u16*)(PlayerPointer - 0x3d1e8) = 0;
-	// deactivate hud
-	// hud->Healthbar = 0;
-	// hud->Minimap = 0;
-	// hud->Weapons = 0;
-	// hud->Popup = 0;
-	// hud->NormalScoreboard = 0;
+	*(u16*)HUDPointer = 0;
 }
 
 void deactivate(Player * player, void * PlayerPointer)
@@ -129,25 +129,26 @@ void deactivate(Player * player, void * PlayerPointer)
 	player->CameraDistance = -6;
 
 	// Don't let Camera go past death barrier
-	void * CameraDeath = (*(u32*)((u32)player + 0x1a54) - 0x3b0c);
+	void * CameraDeath = (void*)(*(u32*)((u32)player + 0x1a54) - 0x3b0c);
 	*(u32*)CameraDeath = 0x10400006;
 
-	// Show HUD
-	*(u16*)(PlayerPointer - 0x3d1e8) = HUD;
-	// reactivate hud
-	// hud->Healthbar = 1;
-	// hud->Minimap = 1;
-	// hud->Weapons = 1;
-	// hud->Popup = 1;
-	// hud->NormalScoreboard = 1;
+	// Set HUD address into HUDPointer
+	void * HUDPointer = (void*)((u32)PlayerPointer - 0x3d1e8);
+
+	// Get D-Pad HUD Pointer and go to needed address
+	int DpadHUDPointer = (*(u32*)((u32)HUDPointer - 0x70) + 0x258);
+	// Enable Directional Pad HUD
+	*(u32*)DpadHUDPointer = 0xAC820004;
+
+	// Restore HUD
+	*(u16*)HUDPointer = SavedHUD;
 }
 
 int main(void)
 {
 	// Get pointer for Player Struct
 	void * PlayerPointer = (void*)(*(u32*)0x001eeb70);
-	//void * PlayerPointer = *(u32*)0x001eeb70;
-	if (PlayerPointer == 0 || (u32)PlayerPointer == 0x0034aa8c)
+	if (PlayerPointer == 0 || PlayerPointer == 3451532)
 	{
 		Active = 0;
 		return -1;
@@ -164,19 +165,19 @@ int main(void)
 		Active = 1;
 		activate(player, PlayerPointer);
 	}
-	// Deactivate with L1 + R1 + R3
-	else if (Active && (pad->btns & (PAD_L1 | PAD_R1 | PAD_R3)) == 0)
+	// Deactivate with L1 + R1 + R3 or Triangle
+	else if (Active && ((pad->btns & (PAD_L1 | PAD_R1 | PAD_R3)) == 0 || (pad->btns & PAD_TRIANGLE) == 0))
 	{
 		Active = 0;
-		deactivate(player, PlayerPointer);
-	}
-	else if (Active && (pad->btns & PAD_TRIANGLE) == 0)
-	{
-		Active = 0;
-		// Could just do vector_copy, but this is actualy shorter assembly.
-		PlayerPosition[0] = CameraPosition[0];
-		PlayerPosition[1] = CameraPosition[1];
-		PlayerPosition[2] = CameraPosition[2];
+
+		// Triange: Set Player Position to current Camera Position
+		if((pad->btns & PAD_TRIANGLE) == 0)
+		{
+			// Could just do vector_copy, but this is actually shorter in assembly.
+			PlayerPosition[0] = CameraPosition[0];
+			PlayerPosition[1] = CameraPosition[1];
+			PlayerPosition[2] = CameraPosition[2];
+		}
 		deactivate(player, PlayerPointer);
 	}
 	
