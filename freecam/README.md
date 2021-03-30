@@ -13,4 +13,5 @@ Controls:
  - x0.5 Speed: R1
  - Select Center Point for Camera Lock: R3
  - Lock Camera to Center Point: Hold Circle
+ - Toggle Render All: Square
  - Toggle Score HUD: Select

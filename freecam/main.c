@@ -9,6 +9,8 @@
 
 int Active = 0;
 int ToggleScoreboard = 0;
+int ToggleRenderAll = 0;
+char RenderAllData[0x140];
 VECTOR CameraPosition,
 		PlayerPosition,
 		targetPos,
@@ -208,7 +210,47 @@ int main(void)
 		{
 			ToggleScoreboard = 0;
 		}
+		// Square: Toggle Render All
+		if ((pad->btns & PAD_SQUARE) == 0 && ToggleRenderAll == 0)
+		{
+			ToggleRenderAll = 1;
 
+			if (*(u32*)0x004D7168 != 0x2402FFFF)
+			{
+				// Copy first Render Data and save it.
+				memcpy(RenderAllData, (u8*)0x00240A40, 0x140);
+
+				// Change render function to save 0xffff instead of normal data.
+				*(u32*)0x004D7168 = 0x2402FFFF;
+				*(u32*)0x004D716c = 0x20A50008;
+				*(u32*)0x004D7170 = 0x2403FFFF;
+				*(u32*)0x004D7174 = 0x20C60008;
+				*(u32*)0x004D7178 = 0x20840008;
+				*(u32*)0x004D717c = 0x20E7FFF8;
+				*(u32*)0x004D718c = 0xFC82FFF8;
+
+				// Set second render data to -1.
+				memset((u8*)0x00240AC0, 0xff, 0x140);
+			}
+			else
+			{
+				// If Off, turn set function back to normal.
+				*(u32*)0x004D7168 = 0x78A20000;
+				*(u32*)0x004D716c = 0x20A50010;
+				*(u32*)0x004D7170 = 0x78C30000;
+				*(u32*)0x004D7174 = 0x20C60010;
+				*(u32*)0x004D7178 = 0x20840010;
+				*(u32*)0x004D717c = 0x20E7FFF0;
+				*(u32*)0x004D718c = 0x7C82FFF0;
+
+				// If off, grab RenderAllData and set it to secondary render data.
+				memcpy((u8*)0x00240AC0, RenderAllData, 0x140);
+			}
+		}
+		else if (!(pad->btns & PAD_SQUARE) == 0)
+		{
+			ToggleRenderAll = 0;
+		}
 		// Handle All Movement Inputs
 		MovementInputs(player, pad);
 	}
