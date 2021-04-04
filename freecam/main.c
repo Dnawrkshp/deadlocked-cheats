@@ -1,3 +1,7 @@
+/*
+ Free Cam Code Created by Troy "Agent Moose" Pruitt
+*/
+
 #include <tamtypes.h>
 #include <libdl/stdio.h>
 #include <libdl/game.h>
@@ -234,7 +238,7 @@ int main(void)
 			}
 			else
 			{
-				// If Off, turn set function back to normal.
+				// If Off, turn function back to normal.
 				*(u32*)0x004D7168 = 0x78A20000;
 				*(u32*)0x004D716c = 0x20A50010;
 				*(u32*)0x004D7170 = 0x78C30000;
@@ -263,7 +267,9 @@ int main(void)
 		float * PlayerCoordinates = (float*) player->UNK24;
 		PlayerCoordinates[0] = 0;
 		PlayerCoordinates[1] = PlayerPosition[1];
-		PlayerCoordinates[2] = PlayerPosition[2];
+
+		// Add 0x00100000 to Y so it doesn't hit death barriers.
+		PlayerCoordinates[2] = PlayerPosition[2] + 0x00100000;
 	}
 
 	// Force Hold Wrench

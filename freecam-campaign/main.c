@@ -166,6 +166,7 @@ int main(void)
 		activate(player, PlayerPointer);
 	}
 	// Deactivate with L1 + R1 + R3 or Triangle
+	// Triangle Sets Player Position to current Camera Position.
 	else if (Active && ((pad->btns & (PAD_L1 | PAD_R1 | PAD_R3)) == 0 || (pad->btns & PAD_TRIANGLE) == 0))
 	{
 		Active = 0;
@@ -200,6 +201,8 @@ int main(void)
 		float * PlayerCoordinates = (float*) player->UNK24;
 		PlayerCoordinates[0] = 0;
 		PlayerCoordinates[1] = PlayerPosition[1];
+
+		// Add 0x10000 to Y so it doesn't hit death barriers.
 		PlayerCoordinates[2] = PlayerPosition[2] + 0x00010000;
 	}
 
