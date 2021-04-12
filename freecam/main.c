@@ -14,7 +14,7 @@
 int Active = 0;
 int ToggleScoreboard = 0;
 int ToggleRenderAll = 0;
-char RenderAllData[0x140];
+char RenderAllData[0x280];
 VECTOR CameraPosition,
 		PlayerPosition,
 		targetPos,
@@ -218,37 +218,36 @@ int main(void)
 		if ((pad->btns & PAD_SQUARE) == 0 && ToggleRenderAll == 0)
 		{
 			ToggleRenderAll = 1;
-
-			if (*(u32*)0x004D7168 != 0x2402FFFF)
+			
+			// if render function has not been modified, then do so.
+			if (*(u32*)0x004D7168 != 0x03e00008)
 			{
-				// Copy first Render Data and save it.
-				memcpy(RenderAllData, (u8*)0x00240A40, 0x140);
+				// Copy Render Data and save it.
+				memcpy(RenderAllData, (u8*)0x00240A40, 0x280);
 
-				// Change render function to save 0xffff instead of normal data.
-				*(u32*)0x004D7168 = 0x2402FFFF;
-				*(u32*)0x004D716c = 0x20A50008;
-				*(u32*)0x004D7170 = 0x2403FFFF;
-				*(u32*)0x004D7174 = 0x20C60008;
-				*(u32*)0x004D7178 = 0x20840008;
-				*(u32*)0x004D717c = 0x20E7FFF8;
-				*(u32*)0x004D718c = 0xFC82FFF8;
+				// Turn off render functions
+				*(u32*)0x004C0760 = 0x00000000;
+				*(u32*)0x004C0878 = 0x00000000;
+				*(u32*)0x004C09E0 = 0x00000000;
+				*(u32*)0x004C0A50 = 0x00000000;
+				*(u32*)0x004D7168 = 0x03e00008;
+				*(u32*)0x004D716C = 0x00000000;
 
-				// Set second render data to -1.
-				memset((u8*)0x00240AC0, 0xff, 0x140);
+				// Set render data to -1.
+				memset((u8*)0x00240A40, 0xff, 0x280);
 			}
 			else
 			{
-				// If Off, turn function back to normal.
+				// If Off, turn functions back to normal.
+				*(u32*)0x004C0760 = 0x0C135C40;
+				*(u32*)0x004C0878 = 0x0C135BD8;
+				*(u32*)0x004C09E0 = 0x0C135C40;
+				*(u32*)0x004C0A50 = 0x0C135C40;
 				*(u32*)0x004D7168 = 0x78A20000;
-				*(u32*)0x004D716c = 0x20A50010;
-				*(u32*)0x004D7170 = 0x78C30000;
-				*(u32*)0x004D7174 = 0x20C60010;
-				*(u32*)0x004D7178 = 0x20840010;
-				*(u32*)0x004D717c = 0x20E7FFF0;
-				*(u32*)0x004D718c = 0x7C82FFF0;
+				*(u32*)0x004D716C = 0x20A50010;
 
-				// If off, grab RenderAllData and set it to secondary render data.
-				memcpy((u8*)0x00240AC0, RenderAllData, 0x140);
+				// If off, grab RenderAllData and set it to render data.
+				memcpy((u8*)0x00240A40, RenderAllData, 0x280);
 			}
 		}
 		else if (!(pad->btns & PAD_SQUARE) == 0)
