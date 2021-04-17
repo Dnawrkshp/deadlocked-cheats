@@ -43,6 +43,8 @@ cd src
 ./docker-init.sh
 ```
 
+NOTE: The docker-init script is known to fail due to inconsistent line endings when your git is configured to convert line endings (windows). If this is the case you can either replace all line endings in the file with LF or just run each command in the script manually.
+
 4. Build with:
 
 ```sh
