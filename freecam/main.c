@@ -14,12 +14,12 @@
 int Active = 0;
 int ToggleScoreboard = 0;
 int ToggleRenderAll = 0;
-char RenderAllData[0x280];
 VECTOR CameraPosition,
 		PlayerPosition,
 		targetPos,
 		cameraPos,
 		delta;
+char RenderAllData[0x280];
 
 void MovementInputs(Player * player, PadButtonStatus * pad)
 {
