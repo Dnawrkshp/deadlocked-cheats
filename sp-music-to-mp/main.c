@@ -199,25 +199,67 @@ int main(void)
 	}
 	Active = 1;
 	// Get player pad info
-	//Player * player = (Player*)0x00347aa0;
-	//PadButtonStatus * pad = playerGetPad(player);
-	int number= 0;
-	//(sizeof(Tracks[0])/sizeof(int*))
-	for(Map = 0; Map < 62; Map++)
+	Player * player = (Player*)0x00347aa0;
+	PadButtonStatus * pad = playerGetPad(player);
+
+	/*
+	Notes:
+	# of MP tracks: 13 or 0x0d
+	# of sp tracks: 62 or 0x3e
+	0x3e + 0xd = 0x4b * 2 = 0x96
+	*/
+
+	int number = 0;
+	int DefaultMultiplayerTracks = 0x0d; // This number will never change
+	int AddedTracks = sizeof(Tracks)/sizeof(Tracks[0]);
+	// Adds +1 for an index bug.
+	int HowManyTracks = ((DefaultMultiplayerTracks - *(u8*)0x0021EC08) + 1) + AddedTracks;
+	int Current_Track = *(u16*)0x00206990;
+	for(Map = 0; Map < AddedTracks; Map++)
 	{
-		// for(Track = 0; Track < (sizeof(Map[0])/sizeof(int*)); Track++)
-		// {
-		// 	*(u32*)(0x001CF940 + number) = Tracks;
-		// 	number += 2;
-		// }
 		*(u32*)(0x001CF940 + number) = Tracks[Map][0];
 		*(u32*)(0x001CF948 + number) = Tracks[Map][1];
 		number += 0x10;
 	}
-	// Start tracks at which track? (4th track in this case)
-	//*(u32*)0x0021EC08 = 0x04;
-	// How many of the tracks to play? (4 + number)
-	//    Original value is 0xA, so it only plays +0xA starting from track 0x4.
-	*(u32*)0x0021EC0C = 72;
+	// If in game
+	if(gameIsIn())
+	{
+		// Start tracks at which track? (4th track in this case)
+		//   This value gets multiplied by 2.
+		//*(u32*)0x0021EC08 = 0x4;
+
+		// How many of the following tracks to play? (0xA = original value)
+		//   This value gets multiplied by 0x10, or 16.
+		*(u32*)0x0021EC0C = HowManyTracks;
+		// Rapid Randomizer to testing purposes.  If track doesn't == 0x96, randomize.
+		//if (*(u16*)0x00206990 != 0x96) *(u16*)0x00206996 = 0x5;
+		// L3: Previous Track
+		if ((pad->btns & PAD_L3) == 0)
+		{
+			// if previous track won't be less than zero, set track.
+			if((Current_Track - 2) >= 0){
+				*(u16*)0x00206984 = Current_Track - 2;
+			}
+			// if previous track will be less than zero, go to last track.
+			else
+			{
+				*(u16*)0x00206984 = HowManyTracks * 2;
+			}
+		}
+		// R3: Next Track
+		if ((pad->btns & PAD_R3) == 0)
+		{
+			// if next track is less than or equal too last track
+			if((Current_Track + 2) <= HowManyTracks * 2)
+			{
+				*(u16*)0x00206984 = Current_Track + 2;
+			}
+			// if next track is greater than last track
+			else
+			{
+				*(u16*)0x00206984 = 0;
+			}
+		}
+	}
 	return 1;
 }
