@@ -6,6 +6,8 @@
 #include <tamtypes.h>
 #include <libdl/stdio.h>
 #include <libdl/game.h>
+#include <libdl/map.h>
+#include <libdl/gamesettings.h>
 #include <libdl/player.h>
 #include <libdl/pad.h>
 
@@ -204,6 +206,7 @@ int main(void)
 	// Get player pad info
 	Player * player = (Player*)0x00347aa0;
 	PadButtonStatus * pad = playerGetPad(player);
+	GameSettings * gameSettings = gameGetSettings();
 
 	/*
 	Notes:
@@ -215,8 +218,9 @@ int main(void)
 	int DefaultMultiplayerTracks = 0x0d; // This number will never change
 	int AddedTracks = (sizeof(Tracks)/sizeof(Tracks[0]));
 	int StartingTrack = *(u8*)0x0021EC08;
-	// Add 1 because the total track never will be zero.
-	int TotalTracks = (DefaultMultiplayerTracks - StartingTrack) + AddedTracks + 1;
+	// Fun fact: The math for TotalTracks is exactly how the assembly is.  Didn't mean to do it that way.  (Minus the AddedTracks part)
+	int TotalTracks_1 = DefaultMultiplayerTracks + AddedTracks;
+	int TotalTracks = (DefaultMultiplayerTracks - StartingTrack + 1) + AddedTracks;
 	int CurrentTrack = *(u16*)0x00206990;
 	int NextAddress = 0;
 	for(Map = 0; Map < AddedTracks; Map++)
@@ -225,6 +229,81 @@ int main(void)
 		*(u32*)(0x001CF948 + NextAddress) = Tracks[Map][1];
 		NextAddress += 0x10;
 	}
+	if(*(u32*)0x0036D604 == -1)
+	{
+		*(u32*)0x004A8328 = 0x2405003D;
+	}
+	// 0x010A87D4 // Battledome Tower
+	// 0x00F7F7D4 // Catacrom Graveyard
+	// 0x010877D4 // Sarathos Swamp
+	// 0x0111D7D4 // Dark Cathedrial
+	// 0x010897D4 // Temple of Shaar
+	// 0x010D97D4 // Valix Lighthouse
+	// 0x011197D4 // Mining Facility
+	// 0x00FCA7D4 // Torval Ruins
+	// 0x0113D7D4 // Tempus Station
+	// 0x00FC67D4 // Maraxus Prison
+	// 0x011777D4 // Ghost Station
+	// 0x00EE07D4 // Hoven Gorge (Not implemented)
+	switch (gameSettings->GameLevel)
+	{
+		case MAP_ID_BATTLEDOME:
+		{
+			*(u16*)0x010A87D4 = TotalTracks_1;
+			break;
+		}
+		case MAP_ID_CATACROM:
+		{
+			*(u16*)0x00F7F7D4 = TotalTracks_1;
+			break;
+		}
+		case MAP_ID_SARATHOS:
+		{
+			*(u16*)0x010877D4 = TotalTracks_1;
+			break;
+		}
+		case MAP_ID_DC:
+		{
+			*(u16*)0x0111D7D4 = TotalTracks_1;
+			break;
+		}
+		case MAP_ID_SHAAR:
+		{
+			*(u16*)0x010897D4 = TotalTracks_1;
+			break;
+		}
+		case MAP_ID_VALIX:
+		{
+			*(u16*)0x010D97D4 = TotalTracks_1;
+			break;
+		}
+		case MAP_ID_MF:
+		{
+			*(u16*)0x011197D4 = TotalTracks_1;
+			break;
+		}
+		case MAP_ID_TORVAL:
+		{
+			*(u16*)0x00FCA7D4 = TotalTracks_1;
+			break;
+		}
+		case MAP_ID_TEMPUS:
+		{
+			*(u16*)0x0113D7D4 = TotalTracks_1;
+			break;
+		}
+		case MAP_ID_MARAXUS:
+		{
+			*(u16*)0x00FC67D4 = TotalTracks_1;
+			break;
+		}
+		case MAP_ID_GS:
+		{
+			*(u16*)0x011777D4 = TotalTracks_1;
+			break;
+		}
+	}
+
 	// If in game
 	if(gameIsIn())
 	{
@@ -233,10 +312,18 @@ int main(void)
 		//*(u32*)0x0021EC08 = 0x4;
 
 		// How many of the following tracks to play? (0xA = original value)
-		//   This value gets multiplied by 0x10, or 16.
-		*(u32*)0x0021EC0C = TotalTracks;
+		//   This value gets multiplied by 10.
+		//*(u32*)0x0021EC0C = TotalTracks;
+
+		// Modifying the assembly to set TotalTracks.
+		// Doesn't work :(  It doesn't update quick enough, either.
+		// This is two different methods.
+		//*(u32*)0x0051F934 = 0x2402 + TotalTracks;
+		//*(u32*)0x004A8328 = 0x2405003D;
+
 		// Rapid Randomizer for testing purposes.  If track doesn't == Last Track, randomize.
 		//if (*(u16*)0x00206990 != 0x7a) *(u16*)0x00206996 = 0x5;
+
 		// L3: Previous Track
 		if ((pad->btns & PAD_L3) == 0)
 		{
@@ -247,14 +334,14 @@ int main(void)
 			// if previous track will be less than zero, go to last track.
 			else
 			{
-				*(u16*)0x00206984 = TotalTracks * 2;
+				*(u16*)0x00206984 = (DefaultMultiplayerTracks + AddedTracks) * 2;
 			}
 		}
 		// R3: Next Track
 		if ((pad->btns & PAD_R3) == 0)
 		{
 			// if next track is less than or equal too last track
-			if((CurrentTrack + 2) <= TotalTracks * 2)
+			if((CurrentTrack + 2) <= (DefaultMultiplayerTracks + AddedTracks) * 2)
 			{
 				*(u16*)0x00206984 = CurrentTrack + 2;
 			}
