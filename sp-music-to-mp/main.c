@@ -13,6 +13,7 @@
 
 int Active = 0;
 int Map;
+int OriginalMusicVolume = 0;
 
 int Tracks[][2] = {
 	/*
@@ -105,7 +106,6 @@ int main(void)
 	Active = 1;
 	Player * player = (Player*)0x00347aa0;
 	PadButtonStatus * pad = playerGetPad(player);
-	GameSettings * gameSettings = gameGetSettings();
 
 	int DefaultMultiplayerTracks = 0x0d; // This number will never change
 	int AddedTracks = (sizeof(Tracks)/sizeof(Tracks[0]));
@@ -133,9 +133,13 @@ int main(void)
 		If I wrote it to late, the game would only randomize the original song set for the first played song.
 		Luckly the offset for the area before it's finilized area is the same for each map.
 	*/
+	// If not in main lobby, game lobby, ect.
 	if(MusicDataPointer != 0x01430700){
-		int MusicFunctionData = MusicDataPointer + 0x28A0D4;
-		*(u16*)MusicFunctionData = AllTracks;
+		// if Last Track doesn't equal TotalTracks
+		if(*(u32*)0x0021EC0C != TotalTracks){
+			int MusicFunctionData = MusicDataPointer + 0x28A0D4;
+			*(u16*)MusicFunctionData = AllTracks;
+		}
 	}
 
 	// If in game
@@ -151,6 +155,28 @@ int main(void)
 
 		// Rapid Randomizer for testing purposes.  If track doesn't == Last Track, randomize.
 		//if (*(u16*)0x00206990 != 0x7a) *(u16*)0x00206996 = 0x5;
+
+		// if volume doesn't equal zero, save it.
+		if(OriginalMusicVolume == 0 && *(u32*)0x00171D44 != 0)
+		{
+			OriginalMusicVolume = *(u32*)0x00171D44;
+		}
+		int MusicVolume = OriginalMusicVolume;
+		int TrackDuration = *(u32*)0x002069A4;
+		// if TrackDuration less thn or equal to MusicVolume times 10,
+		// and if MusicVolume is greater than zero
+		// and if current track isn't original multiplayer track
+		if(TrackDuration <= (MusicVolume * 10) && MusicVolume > 0 && CurrentTrack > DefaultMultiplayerTracks * 2)
+		{
+			// Set music volume by dividing track duration by 10.
+			*(u32*)0x00171D44 = (TrackDuration / 10);
+		}
+		// if track is switching, or volume is less than or equal to zero
+		if(TrackDuration == 0xBB80 || *(u32*)0x00171D44 <= 0)
+		{
+			// set volume back to original volume.
+			*(u32*)0x00171D44 = OriginalMusicVolume;
+		}
 
 		// L3: Previous Track
 		if ((pad->btns & PAD_L3) == 0)
@@ -178,6 +204,14 @@ int main(void)
 			{
 				*(u16*)0x00206984 = 0;
 			}
+		}
+	}
+	else if(!gameIsIn())
+	{
+		// Reset music volume if not in game.
+		if(OriginalMusicVolume != 0){
+			*(u32*)0x00171D44 = OriginalMusicVolume;
+			OriginalMusicVolume = 0;
 		}
 	}
 	return 1;
