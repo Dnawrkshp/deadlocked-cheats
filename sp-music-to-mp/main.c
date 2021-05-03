@@ -6,14 +6,8 @@
 #include <tamtypes.h>
 #include <libdl/stdio.h>
 #include <libdl/game.h>
-#include <libdl/map.h>
-#include <libdl/gamesettings.h>
 #include <libdl/player.h>
 #include <libdl/pad.h>
-
-int Active = 0;
-int Map;
-int OriginalMusicVolume = 0;
 
 int Tracks[][2] = {
 	/*
@@ -95,6 +89,10 @@ int Tracks[][2] = {
 	{0x32cfb, 0x332d2} // Defeat Gleemon Vox
 };
 
+int Active = 0;
+int Map;
+int OriginalMusicVolume = 0;
+
 int main(void)
 {
 	// check to see if multiplayer tracks are loaded
@@ -104,8 +102,6 @@ int main(void)
 		return -1;
 	}
 	Active = 1;
-	Player * player = (Player*)0x00347aa0;
-	PadButtonStatus * pad = playerGetPad(player);
 
 	int DefaultMultiplayerTracks = 0x0d; // This number will never change
 	int AddedTracks = (sizeof(Tracks)/sizeof(Tracks[0]));
@@ -145,13 +141,6 @@ int main(void)
 	// If in game
 	if(gameIsIn())
 	{
-		// Start tracks at which track? (4th track in this case)
-		//   This value gets multiplied by 2.
-		//*(u32*)0x0021EC08 = 0x4;
-
-		// How many of the following tracks to play? (0xA = original value)
-		//   This value gets multiplied by 10.
-		//*(u32*)0x0021EC0C = TotalTracks;
 
 		// Rapid Randomizer for testing purposes.  If track doesn't == Last Track, randomize.
 		//if (*(u16*)0x00206990 != 0x7a) *(u16*)0x00206996 = 0x5;
@@ -176,34 +165,6 @@ int main(void)
 		{
 			// set volume back to original volume.
 			*(u32*)0x00171D44 = OriginalMusicVolume;
-		}
-
-		// L3: Previous Track
-		if ((pad->btns & PAD_L3) == 0)
-		{
-			// if previous track won't be less than zero, set track.
-			if((CurrentTrack - 2) >= 0){
-				*(u16*)0x00206984 = CurrentTrack - 2;
-			}
-			// if previous track will be less than zero, go to last track.
-			else
-			{
-				*(u16*)0x00206984 = AllTracks * 2;
-			}
-		}
-		// R3: Next Track
-		if ((pad->btns & PAD_R3) == 0)
-		{
-			// if next track is less than or equal too last track
-			if((CurrentTrack + 2) <= AllTracks * 2)
-			{
-				*(u16*)0x00206984 = CurrentTrack + 2;
-			}
-			// if next track is greater than last track
-			else
-			{
-				*(u16*)0x00206984 = 0;
-			}
 		}
 	}
 	else if(!gameIsIn())
