@@ -156,6 +156,20 @@ void deactivate(Player * player, PlayerHUDFlags * hud)
 	// Reset Respawn timer
 	player->RespawnTimer = 0;
 
+	// Reset Render Data/Function
+	if (*(u32*)0x004D7168 == 0x03e00008)
+	{
+		*(u32*)0x004C0760 = 0x0C135C40;
+		*(u32*)0x004C0878 = 0x0C135BD8;
+		*(u32*)0x004C09E0 = 0x0C135C40;
+		*(u32*)0x004C0A50 = 0x0C135C40;
+		*(u32*)0x004D7168 = 0x78A20000;
+		*(u32*)0x004D716C = 0x20A50010;
+		// If off, grab RenderAllData and set it to render data.
+		memcpy((u8*)0x00240A40, RenderAllData, 0x280);
+	}
+	RenderAllData[0x280] = 0;
+
 	// reactivate hud
 	hud->Healthbar = 1;
 	hud->Minimap = 1;
