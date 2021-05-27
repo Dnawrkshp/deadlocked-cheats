@@ -56,8 +56,8 @@ void LoadVehicleSub()
 
 int main(void)
 {
-	// If on Create Game menu
-	if (gameIsIn() || *(u32*)0x003434B8 != 0x136)
+	// If not on Create Game menu or if Account ID equals -1
+	if (*(u32*)0x00172194 == -1 || gameIsIn() || *(u32*)0x003434B8 != 0x136)
 	{
 		OnCreateGame = 0;
 		return -1;
