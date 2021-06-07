@@ -58,3 +58,4 @@ linkfile
 
 # vscode
 .vscode
+patch-bin/*
