@@ -58,4 +58,6 @@ linkfile
 
 # vscode
 .vscode
+
 patch-bin/*
+test-dialog/*

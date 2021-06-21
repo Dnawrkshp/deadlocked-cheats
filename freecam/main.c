@@ -132,11 +132,11 @@ void activate(Player * player, PlayerHUDFlags * hud)
 	player->RespawnTimer = -1;
 
 	// deactivate hud
-	hud->Healthbar = 0;
-	hud->Minimap = 0;
-	hud->Weapons = 0;
-	hud->Popup = 0;
-	hud->NormalScoreboard = 0;
+	hud->Flags.Healthbar = 0;
+	hud->Flags.Minimap = 0;
+	hud->Flags.Weapons = 0;
+	hud->Flags.Popup = 0;
+	hud->Flags.NormalScoreboard = 0;
 }
 
 void deactivate(Player * player, PlayerHUDFlags * hud)
@@ -171,11 +171,11 @@ void deactivate(Player * player, PlayerHUDFlags * hud)
 	RenderAllData[0x280] = 0;
 
 	// reactivate hud
-	hud->Healthbar = 1;
-	hud->Minimap = 1;
-	hud->Weapons = 1;
-	hud->Popup = 1;
-	hud->NormalScoreboard = 1;
+	hud->Flags.Healthbar = 1;
+	hud->Flags.Minimap = 1;
+	hud->Flags.Weapons = 1;
+	hud->Flags.Popup = 1;
+	hud->Flags.NormalScoreboard = 1;
 }
 
 int main(void)
@@ -222,7 +222,7 @@ int main(void)
 		if ((pad->btns & PAD_SELECT) == 0 && ToggleScoreboard == 0)
 		{
 			ToggleScoreboard = 1;
-			hud->NormalScoreboard = !hud->NormalScoreboard;
+			hud->Flags.NormalScoreboard = !hud->Flags.NormalScoreboard;
 		}
 		else if (!(pad->btns & PAD_SELECT) == 0)
 		{
