@@ -50,7 +50,7 @@ void MovementInputs(Player * player, PadButtonStatus * pad)
 	// It adds more error for drifting analog sticks.
 	float LeftAnalogH = (*(float*)0x001ee708);
 	float LeftAnalogV = (*(float*)0x001ee70c);
-	if((LeftAnalogV || LeftAnalogH) != 0)
+	if ((LeftAnalogV || LeftAnalogH) != 0)
 	{
 		float hSpeed = LeftAnalogH * MOVE_SPEED;
 		float vSpeed = -LeftAnalogV * MOVE_SPEED;
@@ -88,19 +88,21 @@ void MovementInputs(Player * player, PadButtonStatus * pad)
 	// L2 = Move Down
 	if ((pad->btns & PAD_L2) == 0 && (pad->btns & PAD_R2) != 0)
 	{
-		v[2] = (pCos * -MOVE_SPEED);
+		//v[2] = (pCos * -MOVE_SPEED);
+		v[2] -= MOVE_SPEED;
 	}
 	// R2 = Move Up
 	if ((pad->btns & PAD_R2) == 0 && (pad->btns & PAD_L2) != 0)
 	{
-		v[2] = (pCos * MOVE_SPEED);
+		//v[2] = (pCos * MOVE_SPEED);
+		v[2] += MOVE_SPEED;
 	}
 	// R3: Select target for lock rotation
 	if ((pad->btns & PAD_R3) == 0)
 	{
 		vector_copy(targetPos, CameraPosition);
 	}
-	// Hold Circle: lock camera
+	// Hold Circle: Lock Camera
 	if ((pad->btns & PAD_CIRCLE) == 0)
 	{
 		vector_copy(cameraPos, CameraPosition);
@@ -297,7 +299,7 @@ int main(void)
 	player->CameraDistance = 0;
 
 	// fix death camera lock
-	player->CameraPitchMin = 1.48353;
+	player->CameraPitchMin = 1.48353; // Testing: 1.57077;
 	player->CameraPitchMax = -1.22173;
 
 	return 1;
