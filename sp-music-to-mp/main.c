@@ -8,6 +8,7 @@
 #include <libdl/game.h>
 #include <libdl/player.h>
 #include <libdl/pad.h>
+#include "music.h"
 
 int Tracks[][2] = {
 	/*
@@ -19,7 +20,7 @@ int Tracks[][2] = {
 	{0xbe86, 0xc3c4}, // DreadZone Training Course
 	// {0xc99a, 0xcec1}, // Marauder Tournament - Advanced Qualifier, Avenger - The Tower of Power, Perfect Chrome Finish, Higher Ground, Liberator - Swarmer Surprise, Dynamite Baseball
 	{0xd470, 0xd937}, // Grist for the Mill, the Corkscrew, Liberator - Accelerator
-	{0xde88, 0xe3a5}, // The Big Sleep, Avenger - Climb the Tower of Power, Close and Personal, Crusader - Reactor Battle, Vindicator - Eviscerator Battle
+	// {0xde88, 0xe3a5}, // The Big Sleep, Avenger - Climb the Tower of Power, Close and Personal, Crusader - Reactor Battle, Vindicator - Eviscerator Battle
 	{0xe95c, 0xee25}, // Avenger - Manic Speed Demon, Vindicator - Murphy's Law
 	{0xf3fa, 0xf92d}, // Zombie Attack, Less is More
 	{0xfee8, 0x103af}, // Crusader - Static Death Trap, Liberator - Ace Hardlight Battle
@@ -91,7 +92,6 @@ int Tracks[][2] = {
 
 int Active = 0;
 int Map;
-int OriginalMusicVolume = 0;
 
 int main(void)
 {
@@ -141,38 +141,20 @@ int main(void)
 	// If in game
 	if(gameIsIn())
 	{
-
-		// Rapid Randomizer for testing purposes.  If track doesn't == Last Track, randomize.
-		//if (*(u16*)0x00206990 != 0x7a) *(u16*)0x00206996 = 0x5;
-
-		// if volume doesn't equal zero, save it.
-		if(OriginalMusicVolume == 0 && *(u32*)0x00171D44 != 0)
-		{
-			OriginalMusicVolume = *(u32*)0x00171D44;
-		}
-		int MusicVolume = OriginalMusicVolume;
 		int TrackDuration = *(u32*)0x002069A4;
-		// if TrackDuration less thn or equal to MusicVolume times 10,
-		// and if MusicVolume is greater than zero
-		// and if current track isn't original multiplayer track
-		if(TrackDuration <= (MusicVolume * 10) && MusicVolume > 0 && CurrentTrack > DefaultMultiplayerTracks * 2)
+		if (*(u32*)0x002069A0 <= 0)
 		{
-			// Set music volume by dividing track duration by 10.
-			*(u32*)0x00171D44 = (TrackDuration / 10);
-		}
-		// if track is switching, or volume is less than or equal to zero
-		if(TrackDuration == 0xBB80 || *(u32*)0x00171D44 <= 0)
-		{
-			// set volume back to original volume.
-			*(u32*)0x00171D44 = OriginalMusicVolume;
-		}
-	}
-	else if(!gameIsIn())
-	{
-		// Reset music volume if not in game.
-		if(OriginalMusicVolume != 0){
-			*(u32*)0x00171D44 = OriginalMusicVolume;
-			OriginalMusicVolume = 0;
+			/*
+				This part: (CurrentTrack != -1 && *(u32*)0x020698C != 0)
+				fixes a bug when switching tracks, and running the command
+				to set your own track or stop a track.
+			*/
+			if ((CurrentTrack > DefaultMultiplayerTracks * 2) && (CurrentTrack != -1 && *(u32*)0x020698C != 0) && (TrackDuration <= 0x3000))
+			{
+				// This techinally cues track 1 (the shortest track) with no sound to play.
+				// Doing this lets the current playing track to fade out.
+				musicTransitionTrack(0,0,0,0);
+			}
 		}
 	}
 	return 1;
