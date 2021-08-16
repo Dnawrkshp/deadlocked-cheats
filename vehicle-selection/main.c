@@ -45,6 +45,8 @@ void LoadVehicleSub()
 		"_GoToLoop:"
 		"addiu  $a0, $a0, 0x4;"
 		"bgez   $v1, _Loop;"
+		
+		// Nop secondary save function
 		"lui    $t0, 0x0072;"
 		"ori    $t0, $t0, 0xD854;"
 		"sw     $zero, 0x0($t0);"
@@ -80,6 +82,9 @@ int main(void)
 	{
 		// set our new subroutine address
 		*Vehicles = 0x0c000000 | ((u32)(&LoadVehicleSub) >> 2);
+
+		// Noping of the Secondary_save function is done in the assembly function
+		// I do it there because I beleive it caused problems when noping it this if statement.
 	}
 	// if Vehicles are turned off.
 	if (VehiclesStatus == 0x3 && *(u32*)Secondary_Save != 0xA0400000)
