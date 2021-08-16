@@ -3,10 +3,10 @@
 #include <libdl/game.h>
 #include <libdl/ui.h>
 
-int OnCreateGame = 0;
-int SavedMap = -1;
-int CurrentMap = 0;
-int VehiclesStatus = 0;
+char _VehicleSelect_Init = 0;
+char SavedMap = -1;
+char CurrentMap = 0;
+char VehiclesStatus = 0;
 int Secondary_Save = 0;
 
 void LoadVehicleSub()
@@ -45,6 +45,9 @@ void LoadVehicleSub()
 		"_GoToLoop:"
 		"addiu  $a0, $a0, 0x4;"
 		"bgez   $v1, _Loop;"
+		"lui    $t0, 0x0072;"
+		"ori    $t0, $t0, 0xD854;"
+		"sw     $zero, 0x0($t0);"
 		"_exit:"
 		"jr     $ra;"
 		"nop"
@@ -56,42 +59,27 @@ void LoadVehicleSub()
 
 int main(void)
 {
-	// If not on Create Game menu or in game
-	if (gameIsIn() || *(u32*)0x003434B8 != 0x136)
+	// If not on Create Game menu or in game or in local play
+	if ((*(u32*)0x00172194 == -1) || gameIsIn() || (*(u32*)0x003434B8 != 0x136) || !CheckInitCodes(Active))
 	{
-		OnCreateGame = 0;
+		_VehicleSelect_Init = 0;
 		return -1;
 	}
 
-	OnCreateGame = 1;
+	_VehicleSelect_Init = 1;
 	// Load Vehicle Subroutine address
 	u32 * Vehicles = (u32*)0x00719E24;
+	// Check to see if vehicles are on or off
+	VehiclesStatus = *(u32*)0x012C23B4;
 	// Save current selected map
 	CurrentMap = *(u8*)0x012AA254;
-	// Set address of Vehicle Status and Secondary_Save function
-	if (*(u32*)0x00172194 != -1)
-	{
-		// If Online
-		// Check to see if vehicles are on or off
-		VehiclesStatus = *(u32*)0x012C23B4;
-		// Secondary Save Function
-		Secondary_Save = 0x0072D854;
-	}
-	else
-	{
-		// If Local Play
-		// Check to see if vehicles are on or off
-		VehiclesStatus = *(u32*)0x0135AC98;
-		// Secondary Save Function
-		Secondary_Save = 0x00744394;
-	}
-	// if Secondary_Save does not equal zero
+	// Secondary Save Function for Online
+	Secondary_Save = 0x0072D854;
+	// if vehicles subroutine address = original
 	if (/* *Vehicles == 0x0C1D8A78 */*(u32*)Secondary_Save != 0)
 	{
 		// set our new subroutine address
 		*Vehicles = 0x0c000000 | ((u32)(&LoadVehicleSub) >> 2);
-		// nop secondary save function
-		*(u32*)Secondary_Save = 0x0;
 	}
 	// if Vehicles are turned off.
 	if (VehiclesStatus == 0x3 && *(u32*)Secondary_Save != 0xA0400000)
@@ -101,5 +89,4 @@ int main(void)
 		// Set Saved map to -1
 		SavedMap = -1;
 	}
-	return 1;
 }
