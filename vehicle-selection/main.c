@@ -60,7 +60,7 @@ void LoadVehicleSub()
 int main(void)
 {
 	// If not on Create Game menu or in game or in local play
-	if ((*(u32*)0x00172194 == -1) || gameIsIn() || (*(u32*)0x003434B8 != 0x136) || !CheckInitCodes(Active))
+	if ((*(u32*)0x00172194 == -1) || gameIsIn() || (*(u32*)0x003434B8 != 0x136))
 	{
 		_VehicleSelect_Init = 0;
 		return -1;
