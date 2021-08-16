@@ -55,7 +55,7 @@ int Tracks[][2] = {
 	{0x234fc, 0x239a8}, // Refinery Ambush
 	{0x23f02, 0x243b8}, // Chains of Villainy, Scoring with the Blarg
 	// The Valix Belt
-	{0x1e907, 0x1ee45}, // DreadZone Training Course
+	// {0x1e907, 0x1ee45}, // DreadZone Training Course
 	{0x1f4a3, 0x1f9b3}, // Lost and Found, Time Extension!
 	{0x1ffe9, 0x204d6}, // Space Ace
 	{0x20a4b, 0x20f12}, // Power Up!
