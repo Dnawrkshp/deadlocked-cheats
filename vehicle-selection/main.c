@@ -65,6 +65,10 @@ int main(void)
 	if ((*(u32*)0x00172194 == -1) || gameIsIn() || (*(u32*)0x003434B8 != 0x136))
 	{
 		_VehicleSelect_Init = 0;
+		if (gameIsIn())
+		{
+			SavedMap = -1;
+		}
 		return -1;
 	}
 
@@ -78,7 +82,7 @@ int main(void)
 	// Secondary Save Function for Online
 	Secondary_Save = 0x0072D854;
 	// if vehicles subroutine address = original
-	if (/* *Vehicles == 0x0C1D8A78 */*(u32*)Secondary_Save != 0)
+	if (*(u32*)Secondary_Save != 0)
 	{
 		// set our new subroutine address
 		*Vehicles = 0x0c000000 | ((u32)(&LoadVehicleSub) >> 2);
@@ -91,6 +95,7 @@ int main(void)
 	{
 		// Reset secondary save function to normal
 		*(u32*)Secondary_Save = 0xA0400000;
+
 		// Set Saved map to -1
 		SavedMap = -1;
 	}
