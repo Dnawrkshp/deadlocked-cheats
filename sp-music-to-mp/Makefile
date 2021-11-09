@@ -3,7 +3,7 @@ EE_BIN_DIR = bin/
 
 EE_ELF = $(EE_BIN_DIR)sp-music-to-mp.elf
 EE_BIN = $(EE_BIN_DIR)sp-music-to-mp.bin
-EE_OBJS = functions.o music.o main.o
+EE_OBJS = main.o
 EE_LIBS = -ldl
 ADDRESS = 000FE000
 

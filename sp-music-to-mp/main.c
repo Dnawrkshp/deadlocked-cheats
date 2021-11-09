@@ -8,7 +8,7 @@
 #include <libdl/game.h>
 #include <libdl/player.h>
 #include <libdl/pad.h>
-#include "music.h"
+#include <libdl/music.h>
 
 int Active = 0;
 int FinishedConvertingTracks = 0;
@@ -30,10 +30,16 @@ int main(void)
 	{
 		AddedTracks = 0;
 		int MultiplayerSectorID = *(u32*)0x001CF85C;
-		int Stack = 0x0023ad00; // Original Location is 0x23ac00, but moving it somewhat fixes a bug with the SectorID.  But also, unsure if this breaks anything yet.
+		int Stack = 0x0023ac00; // Original Location is 0x23ac00, but moving it somewhat fixes a bug with the SectorID.  But also, unsure if this breaks anything yet.
 		int Sector = 0x001CE470;
 		int a;
 		int Offset = 0;
+		
+		// Zero out stack by the appropriate heap size (0x2a0 in this case)
+		// This makes sure we get the correct values we need later on.
+		memset((u32*)Stack, 0, 0x2A0);
+
+		// Loop through each Sector
 		for(a = 0; a < 12; a++)
 		{
 			Offset += 0x18;
@@ -53,8 +59,8 @@ int main(void)
 				// - Subtract 0x18 from offset and -1 from loop.
 				if (SectorID != 0x0)
 				{
-					// printf("Sector: 0x%X\n", MapSector);
-					// printf("Sector ID: 0x%X\n", SectorID);
+					DPRINTF("Sector: 0x%X\n", MapSector);
+					DPRINTF("Sector ID: 0x%X\n", SectorID);
 
 					// do music stuffs~
 					// Get SP 2 MP Offset for current SectorID.
@@ -93,8 +99,11 @@ int main(void)
 				a--;
 			}
 		}
+		// Zero out stack to finish the job.
+		memset((u32*)Stack, 0, 0x2A0);
+
 		FinishedConvertingTracks = 1;
-		// printf("AddedTracks: %d\n", AddedTracks);
+		DPRINTF("AddedTracks: %d\n", AddedTracks);
 	};
 	
 
@@ -105,6 +114,17 @@ int main(void)
 	int TotalTracks = (DefaultMultiplayerTracks - StartingTrack + 1) + AddedTracks;
 	int MusicDataPointer = *(u32*)0x0021DA24; // This is more than just music data pointer, but it's what Im' using it for.
 	int CurrentTrack = *(u16*)0x00206990;
+		/*
+		MusicFunctionData was hard to find.
+		The value at 0x0021DA24 is where all the music logic first gets written too.
+		Once written, it is then copied to the needed location to run the funcion.
+		Then right when it's written, it is loaded and ran.
+		In order for the game to randomize each track (including new added tracks),
+		I had to write to the area before the finalized music function got written,
+		so it would copy my data instead of the written data.
+		If I wrote it to late, the game would only randomize the original song set for the first played song.
+		Luckly the offset for the area before it's finilized area is the same for each map.
+	*/
 	// If not in main lobby, game lobby, ect.
 	if(MusicDataPointer != 0x01430700){
 		// if Last Track doesn't equal TotalTracks
