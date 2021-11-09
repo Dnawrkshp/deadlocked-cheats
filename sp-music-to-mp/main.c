@@ -62,12 +62,18 @@ int main(void)
 					// Remember we skip the first track because it is the start of the sp track, not the body of it.
 					int b = 0;
 					int Songs = Stack + 0x18;
+					// while current song doesn't equal zero, then convert.
+					// if it does equal zero, that means we reached the end of the list and we move onto the next batch of tracks.
 					do
 					{
+						// Left Audio
 						int StartingSong = *(u32*)(Songs + b);
+						// Right Audio
 						int EndingSong = *(u32*)((u32)(Songs + b) + 0x8);
+						// Convert Left/Right Audio
 						int ConvertedSong_Start = SP2MP + StartingSong;
 						int ConvertedSong_End = SP2MP + EndingSong;
+						// Apply newly Converted tracks
 						*(u32*)(NewTracksLocation) = ConvertedSong_Start;
 						*(u32*)(NewTracksLocation + 0x08) = ConvertedSong_End;
 						NewTracksLocation += 0x10;
@@ -99,7 +105,6 @@ int main(void)
 	int TotalTracks = (DefaultMultiplayerTracks - StartingTrack + 1) + AddedTracks;
 	int MusicDataPointer = *(u32*)0x0021DA24; // This is more than just music data pointer, but it's what Im' using it for.
 	int CurrentTrack = *(u16*)0x00206990;
-	int NextAddress = 0;
 	// If not in main lobby, game lobby, ect.
 	if(MusicDataPointer != 0x01430700){
 		// if Last Track doesn't equal TotalTracks
