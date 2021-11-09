@@ -11,6 +11,7 @@ void internal_musicUnpauseTrack_inGame(void);
 void internal_musicUnpauseTrack_inLobby(void);
 void internal_musicTransitionTrack_inGame(u64, u64, u64, u64);
 void internal_musicTransitionTrack_inLobby(u64, u64, u64, u64);
+void internal_wadGetSectors(u64, u64, u64);
 
 /*
  * Games music volume setting.
