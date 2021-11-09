@@ -63,6 +63,7 @@ void internal_wadGetSectors(u64, u64, u64);
  */
 void musicPlayTrack(int TrackNumber, int KeepPlaying)
 {
+    musicStopTrack();
     if (gameIsIn())
     {
         internal_musicPlayTrack_inGame(TrackNumber, KeepPlaying, 0x400);
