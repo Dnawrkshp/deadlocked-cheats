@@ -49,15 +49,7 @@ int main(void)
 			{
 				internal_wadGetSectors(MapSector, 1, Stack);
 				int SectorID = *(u32*)(Stack + 0x4);
-
-				// BUG FIX AREA: If Stack is set to 0x23ac00, you need to add SectorID != 0x1DC1BE to if statement.
-				// The bug is: On first load, the SectorID isn't what I need it to be,
-				// the internal_wadGetSectors function doesn't update it quick enough for some reason.
-				// the following if statement fixes it
-
-				// make sure SectorID doesn't match 0x1dc1be, if so:
-				// - Subtract 0x18 from offset and -1 from loop.
-				if (SectorID != 0x0)
+				if (SectorID != 0)
 				{
 					DPRINTF("Sector: 0x%X\n", MapSector);
 					DPRINTF("Sector ID: 0x%X\n", SectorID);
@@ -128,8 +120,8 @@ int main(void)
 	// If not in main lobby, game lobby, ect.
 	if(MusicDataPointer != 0x01430700){
 		// if Last Track doesn't equal TotalTracks
-		if(*(u32*)0x0021EC0C != TotalTracks){
-			int MusicFunctionData = MusicDataPointer + 0x28A0D4;
+		int MusicFunctionData = MusicDataPointer + 0x28A0D4;
+		if(*(u32*)0x0021EC0C != TotalTracks && *(u16*)MusicFunctionData != AllTracks){
 			*(u16*)MusicFunctionData = AllTracks;
 		}
 	}
