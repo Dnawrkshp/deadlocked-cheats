@@ -131,14 +131,14 @@ void activate(Player * player, PlayerHUDFlags * hud)
 	*(u32*)0x005F40DC = 0x10000006;
 
 	// Set Respawn Timer to Zero, then negative so player can't respawn
-	player->RespawnTimer = -1;
+	player->timers.resurrectWait = -1;
 
 	// deactivate hud
-	hud->Flags.Healthbar = 0;
-	hud->Flags.Minimap = 0;
-	hud->Flags.Weapons = 0;
-	hud->Flags.Popup = 0;
-	hud->Flags.NormalScoreboard = 0;
+	hud->Flags.Flags.Healthbar = 0;
+	hud->Flags.Flags.Minimap = 0;
+	hud->Flags.Flags.Weapons = 0;
+	hud->Flags.Flags.Popup = 0;
+	hud->Flags.Flags.NormalScoreboard = 0;
 }
 
 void deactivate(Player * player, PlayerHUDFlags * hud)
@@ -156,7 +156,7 @@ void deactivate(Player * player, PlayerHUDFlags * hud)
 	*(u32*)0x005F40DC = 0x10400006;
 
 	// Reset Respawn timer
-	player->RespawnTimer = 0;
+	player->timers.resurrectWait = 0;
 
 	// Reset Render Data/Function
 	if (*(u32*)0x004D7168 == 0x03e00008)
@@ -173,11 +173,11 @@ void deactivate(Player * player, PlayerHUDFlags * hud)
 	RenderAllData[0x280] = 0;
 
 	// reactivate hud
-	hud->Flags.Healthbar = 1;
-	hud->Flags.Minimap = 1;
-	hud->Flags.Weapons = 1;
-	hud->Flags.Popup = 1;
-	hud->Flags.NormalScoreboard = 1;
+	hud->Flags.Flags.Healthbar = 1;
+	hud->Flags.Flags.Minimap = 1;
+	hud->Flags.Flags.Weapons = 1;
+	hud->Flags.Flags.Popup = 1;
+	hud->Flags.Flags.NormalScoreboard = 1;
 }
 
 int main(void)
@@ -224,7 +224,7 @@ int main(void)
 		if ((pad->btns & PAD_SELECT) == 0 && ToggleScoreboard == 0)
 		{
 			ToggleScoreboard = 1;
-			hud->Flags.NormalScoreboard = !hud->Flags.NormalScoreboard;
+			hud->Flags.Flags.NormalScoreboard = !hud->Flags.Flags.NormalScoreboard;
 		}
 		else if (!(pad->btns & PAD_SELECT) == 0)
 		{
