@@ -35,7 +35,7 @@ int main(void)
 			*(u32*)0x00389CAC = 0x00548F7C; // d-pad Right
 		}
 		// if Camera Speed Option is not Selected, Unpatch Menu
-		else if (StartMenuSelection != 3)
+		else if (StartMenuSelection != 3 && *(u32*)0x00389CA8 != 0x00548FDC)
 		{
 			*(u32*)0x00389CA8 = 0x00548FDC; // d-pad Left
 			*(u32*)0x00389CAC = 0x00548FDC; // d-pad Right
