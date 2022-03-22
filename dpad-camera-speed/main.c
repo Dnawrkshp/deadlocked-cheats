@@ -9,7 +9,15 @@ int CameraSpeed = 0x100;
 void DPadCameraLogic(void)
 {
 	int CameraSpeedAddr = 0x00171F18;
-	int num = (*(u16*)0x001EE682 & PAD_LEFT) == 0 ? -0x8 : 0x8;
+	int num = 0;
+	if ((*(u16*)0x001EE682 & PAD_LEFT) == 0)
+	{
+		num = -0x8;
+	}
+	else if ((*(u16*)0x001EE682 & PAD_RIGHT) == 0 | (*(u16*)0x001EE682 & PAD_CROSS) == 0)
+	{
+		num = 0x8;
+	}
 	int NewSpeed = (u32)(*(u32*)CameraSpeedAddr + num);
 	if (NewSpeed >= CameraSpeed)
 	{
@@ -45,6 +53,9 @@ int main(void)
 		{
 			*(u32*)0x00561BCC = 0x0C000000 | ((u32)(&DPadCameraLogic) / 4);
 			*(u32*)0x00561BD0 = 0;
+			*(u32*)0x00561BD8 = 0;
+			*(u32*)0x00561C1C = 0x3C050017;
+			*(u32*)0x00561C20 = 0x8CA21F18;
 		}
 	}
 	return 0;
