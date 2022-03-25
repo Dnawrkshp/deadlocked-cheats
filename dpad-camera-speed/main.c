@@ -49,7 +49,6 @@ void DPadCameraLogic(void)
 		"nop\n"
 	);
 }
-}
 
 int main(void)
 {
