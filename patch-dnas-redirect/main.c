@@ -1,7 +1,7 @@
 #include <tamtypes.h>
 #include <libdl/string.h>
 #include <libdl/stdio.h>
-
+#include <libdl/ui.h>
 
 const char * Redirect = "dl.rac-horizon.com";
 
@@ -23,6 +23,10 @@ int main(void)
 	// dnas hostname
 	strncpy((char*)0x00466090, Redirect, 32);
 	strncpy((char*)0x004885B0, Redirect, 32);
+
+	//DNAS Bypass
+	if (*(u8*)0x00498CB0 == (7 || 6) && uiGetActivePointer() == UI_ID_DNAS_SELECT)
+		*(u8*)0x00498CB0 = 5;
 
 	return 0;
 }
