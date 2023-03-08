@@ -23,9 +23,10 @@ int main(void)
 	// dnas hostname
 	strncpy((char*)0x00466090, Redirect, 32);
 	strncpy((char*)0x004885B0, Redirect, 32);
+	strncpy((char*)0x004BF4F0, Redirect, 32);
 
 	//DNAS Bypass
-	if (*(u8*)0x00498CB0 == (7 || 6) && uiGetActivePointer() == UI_ID_DNAS_SELECT)
+	if (*(u8*)0x00498CB0 == 7 || *(u8*)0x00498CB0 == 6)
 		*(u8*)0x00498CB0 = 5;
 
 	return 0;
