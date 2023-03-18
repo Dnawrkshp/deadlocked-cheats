@@ -27,14 +27,15 @@ void HealthCheat(Player * player, float Health)
 }
 void WeaponCheat(Player * player, u8 Level)
 {
-	playerGiveWeapon(player, WEAPON_ID_VIPERS, Level);
-	playerGiveWeapon(player, WEAPON_ID_MAGMA_CANNON, Level);
-	playerGiveWeapon(player, WEAPON_ID_ARBITER, Level);
-	playerGiveWeapon(player, WEAPON_ID_FUSION_RIFLE, Level);
-	playerGiveWeapon(player, WEAPON_ID_MINE_LAUNCHER, Level);
-	playerGiveWeapon(player, WEAPON_ID_B6, 0);
-	playerGiveWeapon(player, WEAPON_ID_OMNI_SHIELD, Level);
-	playerGiveWeapon(player, WEAPON_ID_FLAIL, Level);
+	GadgetBox * gBox = player->GadgetBox;
+	setWeapon(player, gBox, WEAPON_ID_VIPERS, Level);
+	setWeapon(player, gBox, WEAPON_ID_MAGMA_CANNON, Level);
+	setWeapon(player, gBox, WEAPON_ID_ARBITER, Level);
+	setWeapon(player, gBox, WEAPON_ID_FUSION_RIFLE, Level);
+	setWeapon(player, gBox, WEAPON_ID_MINE_LAUNCHER, Level);
+	setWeapon(player, gBox, WEAPON_ID_B6, Level);
+	setWeapon(player, gBox, WEAPON_ID_OMNI_SHIELD, Level);
+	setWeapon(player, gBox, WEAPON_ID_FLAIL, Level);
 	Clear();
 }
 void SpeedCheat(Player * player, float SPEEEEED)
@@ -49,6 +50,14 @@ void WeatherCheat(u8 WeatherID)
 	Clear();
 }
 //=================================================
+
+void setWeapon(Player * player, GadgetBox * gBox, int weaponId, u8 Level)
+{
+	if (gBox->Gadgets[weaponId].Level < 0) {
+		playerGiveWeapon(player, weaponId, 0);
+	}
+	gBox->Gadgets[weaponId].Level = Level;
+}
 
 // Clear Array once correct cheat code is passed
 void Clear(void)
@@ -198,9 +207,6 @@ int main(void)
 			DoCheats(player);
 		}
 	}
-
-	// Player * player = (Player*)0x00347aa0;
-	// DoCheats(player);
 
 	dlPostUpdate();
 
