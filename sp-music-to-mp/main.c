@@ -97,15 +97,14 @@ int main(void)
 	};
 	
 	int DefaultMultiplayerTracks = 0x0d; // This number will never change
-	int StartingTrack = *(u8*)0x0021EC08;
+	int StartingTrack = musicTrackRangeMin();
 	int AllTracks = DefaultMultiplayerTracks + AddedTracks;
 	int TotalTracks = (DefaultMultiplayerTracks - StartingTrack + 1) + AddedTracks;
 	int CodeSegmentPointer = *(u32*)0x0021DA24;
-	int CurrentTrack = *(u16*)0x00206990;
 	// If not in main lobby, game lobby, ect.
 	if(CodeSegmentPointer != 0x01430700){
 		// if TRACK_RANGE_MAX doesn't equal TotalTracks
-		if(*(u32*)0x0021EC0C != TotalTracks){
+		if(musicTrackRangeMax() != TotalTracks){
 			int MusicFunctionData = CodeSegmentPointer + 0x28A0D4;
 			*(u16*)MusicFunctionData = AllTracks;
 		}
@@ -114,10 +113,11 @@ int main(void)
 	// If in game
 	if(isInGame())
 	{
-		int TrackDuration = *(u32*)0x002069A4;
 		if (*(u32*)0x002069A0 <= 0)
 		{
-			if ((CurrentTrack > DefaultMultiplayerTracks * 2) && (CurrentTrack != -1 && *(u32*)0x020698C != 0) && (TrackDuration <= 0x3000))
+			int CurrentTrack = musicCurrentTrack();
+			int TrackDuration = musicTrackDuration();
+			if ((CurrentTrack > DefaultMultiplayerTracks * 2) && (CurrentTrack != -1 && *(u32*)0x0020698C != 0) && (TrackDuration <= 0x3000))
 			{
 				musicTransitionTrack(0,0,0,0);
 			}
