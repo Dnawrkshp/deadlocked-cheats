@@ -126,7 +126,7 @@ void deactivate(Player * player, void * PlayerPointer)
 	PlayerCoordinates[2] = PlayerPosition[2];
 
 	// Set Camera Distance to Default
-	player->CameraDistance = -6;
+	player->CameraElevation = -6;
 
 	// Don't let Camera go past death barrier
 	void * CameraDeath = (void*)(*(u32*)((u32)player + 0x1a54) - 0x3b0c);
@@ -210,7 +210,7 @@ int main(void)
 	player->ChangeWeaponHeldId = 1;
 
 	// Constanty Set Camera Distance to Zero
-	player->CameraDistance = 0;
+	player->CameraElevation = 0;
 
 	// fix death camera lock
 	player->CameraPitchMin = 1.48353;
